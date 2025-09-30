@@ -12,7 +12,7 @@ const menuItems = [
     <div class="flex">
         <aside class="w-64 bg-white shadow flex flex-col fixed top-0 left-0 h-screen">
             <!-- Logo -->
-            <div class="flex items-center text-center px-6 py-5 bg-blue-500 text-white font-bold rounded-tr-3xl">
+            <div class="flex items-center text-center px-6 py-5 bg-color-main2 text-white font-bold rounded-tr-3xl">
                 <img src="/images/layout/logo.png" alt="logo" class="w-14 h-14 rounded-full" />
                 <div class="flex flex-col items-start ml-4">
                     <div class="text-xl">Piyo Piyo</div>
@@ -25,7 +25,7 @@ const menuItems = [
                 <ul>
                     <li v-for="item in menuItems" :key="item.path">
                         <NuxtLink :to="item.path" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                            active-class="bg-blue-50 border-r-4 border-blue-500 text-blue-600" v-slot="{ isActive }">
+                            active-class="bg-blue-100 border-r-4 border-blue-500 text-blue-600" v-slot="{ isActive }">
                             <img :src="isActive ? `${item.img.replace('.png', '_blue.png')}` : item.img"
                                 class="w-6 h-6 object-contain" :alt="item.name" />
                             <span class="pl-1">{{ item.name }}</span>

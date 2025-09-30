@@ -3,7 +3,7 @@
 
 <template>
     <div>
-        Hi
+        Hello, World
     </div>
 </template>
 

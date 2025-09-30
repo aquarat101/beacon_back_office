@@ -2,9 +2,11 @@
 import { ref, computed } from "vue"
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolModal from "~~/components/AddSchoolModal.vue"
+import DeleteSchoolModal from "~~/components/DeleteSchoolModal.vue"
 
 const isCreateSchoolModalOpen = ref(false)
 const isAddSchoolModalOpen = ref(false)
+const isDeleteModalOpen = ref(false)
 
 function handleCreated(data) {
     console.log("🎉 School created:", data)
@@ -13,7 +15,10 @@ function handleCreated(data) {
 
 function handleAdded(data) {
     console.log("🎉 School added:", data)
-    // 👉 เช่น push ลง list หรือ refetch API ได้เลย
+}
+
+function handleDeleted() {
+    console.log("Deleted")
 }
 
 // mock data 90 โรงเรียน
@@ -65,6 +70,10 @@ function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page
     }
+}
+
+function deleteSchool() {
+
 }
 </script>
 
@@ -136,13 +145,18 @@ function goToPage(page) {
                         <!-- Action buttons -->
                         <td class="p-3 text-center">
                             <div class="flex justify-center gap-2">
-                                <button class="bg-color-main3 text-white px-2 py-1 rounded">
+                                <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                                    @click="$router.push(`/schools/details/${school.id}`)">
                                     <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                                 </button>
-                                <button class="bg-color-main3 text-white px-2 py-1 rounded">
+
+                                <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                                    @click="$router.push(`/schools/edit/${school.id}`)">
                                     <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                                 </button>
-                                <button class="bg-color-main-red text-white px-2 py-1 rounded">
+
+                                <button class="bg-color-main-red text-white px-2 py-1 rounded"
+                                    @click="isDeleteModalOpen = true">
                                     <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                                 </button>
                             </div>
@@ -194,4 +208,5 @@ function goToPage(page) {
 
     <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
     <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
+    <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted"/>
 </template>

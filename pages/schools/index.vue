@@ -1,5 +1,20 @@
 <script setup>
 import { ref, computed } from "vue"
+import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
+import AddSchoolModal from "~~/components/AddSchoolModal.vue"
+
+const isCreateSchoolModalOpen = ref(false)
+const isAddSchoolModalOpen = ref(false)
+
+function handleCreated(data) {
+    console.log("🎉 School created:", data)
+    // 👉 เช่น push ลง list หรือ refetch API ได้เลย
+}
+
+function handleAdded(data) {
+    console.log("🎉 School added:", data)
+    // 👉 เช่น push ลง list หรือ refetch API ได้เลย
+}
 
 // mock data 90 โรงเรียน
 const schools = Array.from({ length: 90 }, (_, i) => ({
@@ -90,10 +105,10 @@ function goToPage(page) {
             </div>
 
             <div class="flex gap-3 mt-4">
-                <button class="bg-color-main2 text-white px-4 py-2 rounded-lg">
+                <button @click="isCreateSchoolModalOpen = true" class="bg-color-main2 text-white px-4 py-2 rounded-lg">
                     + Create School
                 </button>
-                <button class="bg-color-main2 text-white px-4 py-2 rounded-lg">
+                <button @click="isAddSchoolModalOpen = true" class="bg-color-main2 text-white px-4 py-2 rounded-lg">
                     + Add School Admin
                 </button>
             </div>
@@ -176,4 +191,7 @@ function goToPage(page) {
 
         </div>
     </div>
+
+    <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
+    <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
 </template>

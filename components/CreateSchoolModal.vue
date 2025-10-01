@@ -25,7 +25,7 @@ function createSchool() {
 </script>
 
 <template>
-    <div v-if="props.modelValue" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div v-if="props.modelValue" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
             <!-- Header -->
             <div class="flex justify-between items-center px-6 py-4 border-b">

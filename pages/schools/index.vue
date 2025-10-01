@@ -32,7 +32,7 @@ const schools = Array.from({ length: 90 }, (_, i) => ({
 }))
 
 const currentPage = ref(1)
-const pageSize = 9
+const pageSize = 10
 const totalPages = computed(() => Math.ceil(schools.length / pageSize))
 
 const paginatedSchools = computed(() => {
@@ -72,9 +72,7 @@ function goToPage(page) {
     }
 }
 
-function deleteSchool() {
-
-}
+function deleteSchool() {}
 </script>
 
 
@@ -117,8 +115,9 @@ function deleteSchool() {
                 <button @click="isCreateSchoolModalOpen = true" class="bg-color-main2 text-white px-4 py-2 rounded-lg">
                     + Create School
                 </button>
-                <button @click="isAddSchoolModalOpen = true" class="bg-color-main2 text-white px-4 py-2 rounded-lg">
-                    + Add School Admin
+                <button @click="isAddSchoolModalOpen = true" class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
+                    <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4">
+                    Add School Admin
                 </button>
             </div>
         </div>
@@ -169,7 +168,7 @@ function deleteSchool() {
                         <td class="p-3 text-center">{{ school.devices }}</td>
 
                         <td class="p-3 text-center">
-                            <span class="px-2 py-1 rounded text-white text-sm"
+                            <span class="px-4 py-1 rounded-full text-white text-sm"
                                 :class="school.status === 'Active' ? 'bg-green-500' : 'bg-color-main-red'">
                                 {{ school.status }}
                             </span>
@@ -208,5 +207,5 @@ function deleteSchool() {
 
     <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
     <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
-    <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted"/>
+    <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
 </template>

@@ -1,4 +1,8 @@
 <script setup>
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
 const menuItems = [
     { name: 'Dashboard', path: '/', img: '/images/layout/dashboard.png' },
     { name: 'Schools', path: '/schools', img: '/images/layout/school.png' },
@@ -7,6 +11,7 @@ const menuItems = [
     { name: 'System Log', path: '/system_log', img: '/images/layout/system_log.png' }
 ]
 </script>
+
 
 <template>
     <div class="flex">
@@ -24,10 +29,17 @@ const menuItems = [
             <nav class="flex-1 mt-2">
                 <ul>
                     <li v-for="item in menuItems" :key="item.path">
-                        <NuxtLink :to="item.path" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                            active-class="bg-blue-100 border-r-4 border-blue-500 text-blue-600" v-slot="{ isActive }">
-                            <img :src="isActive ? `${item.img.replace('.png', '_blue.png')}` : item.img"
-                                class="w-6 h-6 object-contain" :alt="item.name" />
+                        <NuxtLink :to="item.path" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100" :class="{
+                            'bg-blue-100 border-r-4 border-blue-500 text-blue-600':
+                                item.path === '/'
+                                    ? route.path === '/'
+                                    : route.path.startsWith(item.path)
+                        }">
+                            <img :src="(
+                                item.path === '/'
+                                    ? route.path === '/'
+                                    : route.path.startsWith(item.path)
+                            ) ? item.img.replace('.png', '_blue.png') : item.img" class="w-6 h-6 object-contain" :alt="item.name" />
                             <span class="pl-1">{{ item.name }}</span>
                         </NuxtLink>
                     </li>

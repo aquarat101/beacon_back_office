@@ -167,9 +167,8 @@ function deleteSchool() { }
 
         <button @click="router.back()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
 
-
         <!-- Tabs -->
-        <div class="flex border-b mb-6">
+        <div class="flex border-b mb-5">
             <button :class="currentTab === 'info' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'"
                 @click="currentTab = 'info'" class="px-4">
                 Information Detail
@@ -188,7 +187,7 @@ function deleteSchool() { }
         <div v-if="currentTab === 'info'" class="bg-white p-6 rounded-xl shadow">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <div class="flex gap-4">
+                    <div class="flex gap-3">
                         <h2 class="text-xl font-bold">{{ school.name }}</h2>
 
                         <div class="flex items-center px-4 rounded-2xl text-white text-sm"
@@ -220,7 +219,7 @@ function deleteSchool() { }
                         <a :href="school.website" class="text-blue-500" target="_blank">{{ school.website }}</a>
                     </p>
 
-                    <button @click="deleteModalOpen = true" class="text-red-500 mt-4 underline">
+                    <button @click="deleteModalOpen = true" class="text-blue-500 font-bold mt-4 underline">
                         Delete School
                     </button>
                 </div>
@@ -414,7 +413,7 @@ function deleteSchool() { }
                                 <th class="p-3"><input type="checkbox" /></th>
                                 <th class="p-3 text-center">Action</th>
                                 <th class="p-3 text-center">Serial Number</th>
-                                <th class="p-3 text-center">Device Number</th>
+                                <th class="p-3 text-center">Device Name</th>
                                 <th class="p-3 text-center">School</th>
                                 <th class="p-3 text-center">Location (Last update)</th>
                                 <th class="p-3 text-center">Status</th>

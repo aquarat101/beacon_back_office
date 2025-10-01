@@ -145,7 +145,7 @@ function deleteSchool() {}
                         <td class="p-3 text-center">
                             <div class="flex justify-center gap-2">
                                 <button class="bg-color-main3 text-white px-2 py-1 rounded"
-                                    @click="$router.push(`/schools/details/${school.id}`)">
+                                    @click="$router.push(`/schools/detail/${school.id}`)">
                                     <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                                 </button>
 

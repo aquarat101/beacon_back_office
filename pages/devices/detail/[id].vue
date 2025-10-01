@@ -12,7 +12,7 @@ const beaconId = route.params.id
 const deleteModalOpen = ref(false)
 
 // current tab
-const currentTab = ref('location')
+const currentTab = ref('info')
 
 // mock data
 const beacon = ref({

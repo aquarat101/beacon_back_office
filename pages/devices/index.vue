@@ -5,16 +5,6 @@ import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolModal from "~~/components/AddSchoolModal.vue"
 import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
 
-// route params
-const route = useRoute()
-const router = useRouter()
-
-// modal delete
-const deleteModalOpen = ref(false)
-
-// current tab
-const currentTab = ref('info')
-
 const isCreateSchoolModalOpen = ref(false)
 const isAddSchoolModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
@@ -85,10 +75,10 @@ function goToPage(page) {
 <template>
     <div class="p-6">
         <!-- Page Title -->
-        <h1 class="text-2xl font-bold mb-4">Students</h1>
+        <h1 class="text-4xl font-bold mb-6 ml-2 mt-2">Students</h1>
 
         <!-- Search & Filters -->
-        <div class="bg-white pt-3 rounded-xl mb-4">
+        <div class="bg-white p-4 rounded-xl shadow mb-4">
             <div class="flex flex-wrap gap-3 items-center">
                 <input type="text" placeholder="Search" class="border rounded-lg px-3 py-2 flex-1" />
 

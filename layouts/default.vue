@@ -15,7 +15,7 @@
             <nav class="flex-1 mt-4">
                 <ul>
                     <li>
-                        <NuxtLink to="/" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                        <NuxtLink to="/dashboard" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                             active-class="bg-blue-50 border-r-4 border-blue-500 text-blue-600">
                             <span>🏠</span>
                             <span>Dashboard</span>
@@ -43,7 +43,7 @@
                         </NuxtLink>
                     </li>
                     <li>
-                        <NuxtLink to="/system-log" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                        <NuxtLink to="/system_log" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                             active-class="bg-blue-50 border-r-4 border-blue-500 text-blue-600">
                             <span>⚙️</span>
                             <span>System Log</span>

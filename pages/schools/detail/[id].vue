@@ -226,6 +226,12 @@ function deleteSchool() { }
             </div>
         </div>
 
+
+
+
+
+
+
         <!-- Placeholder tabs -->
         <div v-if="currentTab === 'staff'" class="bg-white p-6 rounded-xl shadow">
 
@@ -300,11 +306,13 @@ function deleteSchool() { }
                                 <!-- Action buttons -->
                                 <td class="p-3 text-center">
                                     <div class="flex justify-center gap-2">
-                                        <button class="bg-color-main3 text-white px-2 py-1 rounded">
+                                        <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                                            @click="$router.push(`/schools/detail/staff_detail/${staff.id}`)">
                                             <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                                         </button>
 
-                                        <button class="bg-color-main3 text-white px-2 py-1 rounded">
+                                        <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                                            @click="$router.push(`/schools/detail/staff_edit/${staff.id}`)">
                                             <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                                         </button>
 
@@ -322,10 +330,10 @@ function deleteSchool() { }
 
                                 <td class="p-3 text-center">
                                     <span class="px-4 py-1 rounded-full text-sm" :class="staff.status === 'Active'
-                                            ? 'bg-green-500 text-white'
-                                            : staff.status === 'Pending'
-                                                ? 'bg-color-main-yellow text-black'
-                                                : 'bg-color-main-red text-white '
+                                        ? 'bg-green-500 text-white'
+                                        : staff.status === 'Pending'
+                                            ? 'bg-color-main-yellow text-black'
+                                            : 'bg-color-main-red text-white '
                                         ">
                                         {{ staff.status }}
                                     </span>
@@ -366,6 +374,11 @@ function deleteSchool() { }
             <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
             <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
         </div>
+
+
+
+
+
 
         <div v-if="currentTab === 'students'" class="bg-white p-6 rounded-xl shadow">
             <div class="">
@@ -427,7 +440,8 @@ function deleteSchool() { }
                                 <!-- Action buttons -->
                                 <td class="p-3 text-center">
                                     <div class="flex justify-center gap-2">
-                                        <button class="bg-color-main3 text-white px-2 py-1 rounded">
+                                        <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                                            @click="$router.push(`/schools/detail/student_detail/${student.id}`)">
                                             <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                                         </button>
                                         <button class="bg-color-main-red text-white px-2 py-1 rounded"

@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const menuItems = [
-    { name: 'Dashboard', path: '/', img: '/images/layout/dashboard.png' },
+    { name: 'Dashboard', path: '/dashboard', img: '/images/layout/dashboard.png' },
     { name: 'Schools', path: '/schools', img: '/images/layout/school.png' },
     { name: 'Devices', path: '/devices', img: '/images/layout/device.png' },
     { name: 'Users', path: '/users', img: '/images/layout/user.png' },

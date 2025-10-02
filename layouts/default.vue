@@ -39,7 +39,8 @@ const menuItems = [
                                 item.path === '/'
                                     ? route.path === '/'
                                     : route.path.startsWith(item.path)
-                            ) ? item.img.replace('.png', '_blue.png') : item.img" class="w-6 h-6 object-contain" :alt="item.name" />
+                            ) ? item.img.replace('.png', '_blue.png') : item.img" class="w-6 h-6 object-contain"
+                                :alt="item.name" />
                             <span class="pl-1">{{ item.name }}</span>
                         </NuxtLink>
                     </li>
@@ -55,7 +56,8 @@ const menuItems = [
                     <div class="font-medium">Admin</div>
                     <div class="text-xs">admin@mail.com</div>
                 </div>
-                <button class="ml-auto text-gray-500 hover:text-black">
+                <button class="ml-auto text-gray-500 hover:text-black"
+                    @click="$router.push(`/auth/login`)">
                     <img src="/images/layout/log_out.png" alt="log_out" class="w-6 h-6">
                 </button>
             </div>

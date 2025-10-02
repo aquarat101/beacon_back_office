@@ -18,7 +18,7 @@ const isConfirmPasswordVisible = ref(false)
 const handleSubmit = () => {
     console.log('Email:', email.value)
     console.log('Password:', password.value)
-    router.push('/') // ไปหน้า homepage
+    router.push('/auth/login') // ไปหน้า homepage
 }
 </script>
 

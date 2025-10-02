@@ -80,7 +80,7 @@ const handleSubmit = () => {
 
 
                     <div class="text-right mt-1">
-                        <NuxtLink to="/forgot-password" class="text-sm text-blue-600 underline">
+                        <NuxtLink to="/forgot_password" class="text-sm text-blue-600 underline">
                             Forgot your password?
                         </NuxtLink>
                     </div>

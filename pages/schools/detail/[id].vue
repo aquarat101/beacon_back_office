@@ -5,160 +5,114 @@ import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolModal from "~~/components/AddSchoolModal.vue"
 import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
 
-// route params
 const route = useRoute()
 const router = useRouter()
 const schoolId = route.params.id
 
-// modal delete
+// Modal states
 const deleteModalOpen = ref(false)
-
-// current tab
-const currentTab = ref('info')
-
 const isCreateSchoolModalOpen = ref(false)
 const isAddSchoolModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 
-// mock data
-const school = ref({
-    id: schoolId,
-    name: 'Piyo Piyo Elementary School',
-    type: 'Public',
-    level: 'Elementary',
-    address: 'Worem ipsum dolor sit amet...',
-    lat: '0293481',
-    lng: '0294820357',
-    contactNumber: '021234567890',
-    email: 'piyopiyoschool@mail.com',
-    website: 'http://www.piyopiyo.ac.th/',
-    status: 'Active',
-})
+// Tabs
+const currentTab = ref('info')
 
-const staffs = ref([
-    { id: "S001", name: "John Doe", email: "john.doe@mail.com", phone: "0812345678", role: "Admin", status: "Active" },
-    { id: "S002", name: "Jane Smith", email: "jane.smith@mail.com", phone: "0898765432", role: "Staff", status: "Inactive" },
-    { id: "S003", name: "Somchai Lek", email: "somchai@mail.com", phone: "0801112233", role: "User", status: "Active" },
-    { id: "S004", name: "Maria Chan", email: "maria.chan@mail.com", phone: "0823456789", role: "Staff", status: "Active" },
-    { id: "S005", name: "Arthit Wong", email: "arthit@mail.com", phone: "0834567890", role: "Admin", status: "Pending" },
-    { id: "S006", name: "Linda Lee", email: "linda@mail.com", phone: "0845678901", role: "User", status: "Inactive" },
-    { id: "S007", name: "Nattapong J.", email: "nattapong@mail.com", phone: "0856789012", role: "Staff", status: "Active" },
-    { id: "S008", name: "Chanida Ph.", email: "chanida@mail.com", phone: "0867890123", role: "User", status: "Pending" },
-    { id: "S009", name: "David Tan", email: "david.tan@mail.com", phone: "0878901234", role: "Staff", status: "Inactive" },
-    { id: "S010", name: "Apinya S.", email: "apinya@mail.com", phone: "0889012345", role: "Admin", status: "Active" },
-    { id: "S011", name: "Kittisak N.", email: "kittisak@mail.com", phone: "0812223344", role: "User", status: "Active" },
-    { id: "S012", name: "Woranuch L.", email: "woranuch@mail.com", phone: "0823334455", role: "Staff", status: "Pending" },
-    { id: "S013", name: "Michael Chen", email: "michael@mail.com", phone: "0834445566", role: "Admin", status: "Active" },
-    { id: "S014", name: "Supaporn K.", email: "supaporn@mail.com", phone: "0845556677", role: "User", status: "Active" },
-    { id: "S015", name: "Tawan P.", email: "tawan@mail.com", phone: "0856667788", role: "Staff", status: "Pending" },
-    { id: "S016", name: "Alice Wong", email: "alice@mail.com", phone: "0867778899", role: "Admin", status: "Active" },
-    { id: "S017", name: "Prasert J.", email: "prasert@mail.com", phone: "0878889900", role: "User", status: "Active" },
-    { id: "S018", name: "Yingluck T.", email: "yingluck@mail.com", phone: "0889990011", role: "Staff", status: "Active" },
-    { id: "S019", name: "Victor Lim", email: "victor@mail.com", phone: "0890001122", role: "Staff", status: "Pending" },
-    { id: "S020", name: "Suchada P.", email: "suchada@mail.com", phone: "0811112233", role: "User", status: "Active" },
-    { id: "S021", name: "Jonathan K.", email: "jonathan@mail.com", phone: "0822223344", role: "Staff", status: "Active" },
-    { id: "S022", name: "Siriwan L.", email: "siriwan@mail.com", phone: "0833334455", role: "Admin", status: "Pending" },
-    { id: "S023", name: "Peter Zhang", email: "peter@mail.com", phone: "0844445566", role: "User", status: "Active" },
-    { id: "S024", name: "Kanokwan R.", email: "kanokwan@mail.com", phone: "0855556677", role: "Staff", status: "Active" },
-    { id: "S025", name: "Matthew G.", email: "matthew@mail.com", phone: "0866667788", role: "User", status: "Pending" },
-    { id: "S026", name: "Sompong T.", email: "sompong@mail.com", phone: "0877778899", role: "Admin", status: "Active" },
-    { id: "S027", name: "Nicha W.", email: "nicha@mail.com", phone: "0888889900", role: "Staff", status: "Active" },
-    { id: "S028", name: "William C.", email: "william@mail.com", phone: "0899990011", role: "User", status: "Active" },
-    { id: "S029", name: "Chaiwat K.", email: "chaiwat@mail.com", phone: "0812349876", role: "Staff", status: "Inactive" },
-    { id: "S030", name: "Suda Ph.", email: "suda@mail.com", phone: "0823456781", role: "Admin", status: "Active" },
-])
+// Data
+const school = ref(null) // <-- ใช้ API
+const staffs = ref([])    // ผู้ใช้โรงเรียน
+const students = ref([])  // อุปกรณ์/นักเรียน
 
-function handleCreated(data) {
-    console.log("🎉 School created:", data)
-    // 👉 เช่น push ลง list หรือ refetch API ได้เลย
-}
-
-function handleAdded(data) {
-    console.log("🎉 School added:", data)
-}
-
-function handleDeleted() {
-    console.log("Deleted")
-}
-
-// event handler delete
-function handleDelete() {
-    console.log('Deleted school:', school.value)
-    // สามารถ redirect กลับ list
-    router.push('/schools')
-}
-
-// mock data 90 โรงเรียน
-const schools = Array.from({ length: 90 }, (_, i) => ({
-    id: String(i + 1).padStart(5, "0"),
-    name: `School ${i + 1}`,
-    type: i % 3 === 0 ? "Public" : i % 3 === 1 ? "Private" : "International",
-    level: i % 3 === 0 ? "Elementary" : i % 3 === 1 ? "Middle" : "High",
-    devices: Math.floor(Math.random() * 1500) + 100,
-    status: i % 2 === 0 ? "Active" : "Inactive",
-}))
-
+// Pagination
 const currentPage = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(schools.length / pageSize))
-
+const totalPages = computed(() => Math.ceil(staffs.value.length / pageSize))
 const paginatedStaffs = computed(() => {
     const start = (currentPage.value - 1) * pageSize
     return staffs.value.slice(start, start + pageSize)
 })
-
-// ✅ ฟังก์ชันสร้าง page numbers + ...
-const pageNumbers = computed(() => {
-    const pages = []
-    const total = totalPages.value
-    const current = currentPage.value
-
-    if (total <= 5) {
-        // ถ้าน้อยกว่า 5 หน้า แสดงทั้งหมด
-        for (let i = 1; i <= total; i++) pages.push(i)
-    } else {
-        if (current <= 3) {
-            // case: หน้าแรกๆ
-            pages.push(1, 2, 3, 4, 5, "...", total)
-        } else if (current >= total - 2) {
-            // case: หน้าสุดท้าย
-            pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total)
-        } else {
-            // case: อยู่ตรงกลาง
-            pages.push(1, "...", current - 1, current, current + 1, "...", total)
-        }
-    }
-
-    return pages
-})
-
-function goToPage(page) {
-    if (page === "...") return
-    if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page
-    }
-}
-
-// mock students data
-const students = ref(
-    Array.from({ length: 50 }, (_, i) => ({
-        id: `ST${String(i + 1).padStart(3, "0")}`,
-        serialNumber: `SN${1000 + i}`,
-        deviceNumber: `DV${2000 + i}`,
-        school: school.value.name,
-        location: `Zone ${i % 5 + 1} (${new Date().toLocaleTimeString()})`,
-        status: i % 2 === 0 ? "Active" : "Inactive",
-    }))
-)
-
 const paginatedStudents = computed(() => {
     const start = (currentPage.value - 1) * pageSize
     return students.value.slice(start, start + pageSize)
 })
 
-function deleteSchool() { }
+// Page numbers with "..."
+const pageNumbers = computed(() => {
+    const pages = []
+    const total = totalPages.value
+    const current = currentPage.value
+    if (total <= 5) {
+        for (let i = 1; i <= total; i++) pages.push(i)
+    } else {
+        if (current <= 3) pages.push(1, 2, 3, 4, 5, "...", total)
+        else if (current >= total - 2) pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total)
+        else pages.push(1, "...", current - 1, current, current + 1, "...", total)
+    }
+    return pages
+})
+function goToPage(page) {
+    if (page === "...") return
+    if (page >= 1 && page <= totalPages.value) currentPage.value = page
+}
 
+// ---------------- API Functions ----------------
+
+// ดึงข้อมูลโรงเรียน
+async function getSchool(id) {
+    try {
+        const res = await fetch(`http://localhost:3001/schools/get/${id}`)
+        const json = await res.json()
+        if (json.success) school.value = json.data
+        else console.error("❌ Failed to fetch school")
+        console.log(school.value)
+        console.log(school.value.schoolName)
+    } catch (err) {
+        console.error("🔥 Error fetching school:", err)
+    }
+}
+
+// ดึงผู้ใช้โรงเรียน (staff/admin)
+async function getSchoolStaffs() {
+    try {
+        const res = await fetch(`http://localhost:3001/schools/getAllUser`)
+        const json = await res.json()
+        if (json.success) staffs.value = json.data.users || []
+        else console.error("❌ Failed to fetch school users")
+    } catch (err) {
+        console.error("🔥 Error fetching school users:", err)
+    }
+}
+
+// ดึงนักเรียน/อุปกรณ์ (mock หรือ API)
+async function getStudents() {
+    // ถ้ามี API ของนักเรียน ให้ fetch มาแทน mock
+    students.value = Array.from({ length: 50 }, (_, i) => ({
+        id: `ST${String(i + 1).padStart(3, '0')}`,
+        serialNumber: `SN${1000 + i}`,
+        deviceNumber: `DV${2000 + i}`,
+        school: school.value?.name || '',
+        location: `Zone ${i % 5 + 1} (${new Date().toLocaleTimeString()})`,
+        status: i % 2 === 0 ? "Active" : "Inactive"
+    }))
+}
+
+// ---------------- Handlers ----------------
+function handleCreated(data) { console.log("🎉 School created:", data) }
+function handleAdded(data) { console.log("🎉 School added:", data) }
+function handleDeleted() { console.log("Deleted") }
+function handleDelete() {
+    console.log('Deleted school:', school.value)
+    router.push('/schools')
+}
+
+// Load data on mount
+onMounted(async () => {
+    await getSchool(schoolId)
+    await getSchoolStaffs()
+    await getStudents()
+})
 </script>
+
 
 <template>
     <div class="h-screen p-6">
@@ -188,15 +142,15 @@ function deleteSchool() { }
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <div class="flex gap-3">
-                        <h2 class="text-xl font-bold">{{ school.name }}</h2>
+                        <h2 class="text-xl font-bold">{{ school?.schoolName ?? "no name" }}</h2>
 
                         <div class="flex items-center px-4 rounded-2xl text-white text-sm"
-                            :class="school.status === 'Active' ? 'bg-green-500' : 'bg-red-500'">
-                            {{ school.status }}
+                            :class="school?.status === 'Active' ? 'bg-green-500' : 'bg-red-500'">
+                            {{ school?.status }}
                         </div>
                     </div>
 
-                    <div class="text-sm text-gray-500 mt-1">School ID: {{ school.id }}</div>
+                    <div class="text-sm text-gray-500 mt-1">School ID: {{ school?.id }}</div>
                 </div>
                 <button class="flex bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded"
                     @click="$router.push(`/schools/edit/${school.id}`)">
@@ -209,14 +163,14 @@ function deleteSchool() { }
                 <img src="/images/layout/logo.png" alt="school" class="w-24 h-24 rounded-full" />
 
                 <div class="flex-1">
-                    <p><strong>School Type</strong> <br> {{ school.type }}</p>
-                    <p class="mt-2"><strong>Education Level</strong> <br> {{ school.level }}</p>
-                    <p class="mt-2"><strong>Address</strong> <br> {{ school.address }}</p>
-                    <p class="mt-2"><strong>Latitude / Longitude</strong> <br> {{ school.lat }} / {{ school.lng }}</p>
-                    <p class="mt-2"><strong>Contact Number</strong> <br> {{ school.contactNumber }}</p>
-                    <p class="mt-2"><strong>School Email</strong> <br> {{ school.email }}</p>
+                    <p><strong>School Type</strong> <br> {{ school?.schoolType }}</p>
+                    <p class="mt-2"><strong>Education Level</strong> <br> {{ school?.educationLevel }}</p>
+                    <p class="mt-2"><strong>Address</strong> <br> {{ school?.address }}</p>
+                    <p class="mt-2"><strong>Latitude / Longitude</strong> <br> {{ school?.latitude }} / {{ school?.longtitude }}</p>
+                    <p class="mt-2"><strong>Contact Number</strong> <br> {{ school?.contactNumber }}</p>
+                    <p class="mt-2"><strong>School Email</strong> <br> {{ school?.schoolEmail }}</p>
                     <p class="mt-2"><strong>Website</strong> <br>
-                        <a :href="school.website" class="text-blue-500" target="_blank">{{ school.website }}</a>
+                        <a :href="school?.website" class="text-blue-500" target="_blank">{{ school?.website }}</a>
                     </p>
 
                     <button @click="deleteModalOpen = true" class="text-blue-500 font-bold mt-4 underline">

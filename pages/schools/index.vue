@@ -10,6 +10,10 @@ const isDeleteModalOpen = ref(false)
 const isLoading = ref(false)
 const schools = ref([])
 
+// โรงเรียนที่เลือกจะลบ
+const selectedSchoolId = ref("")
+const selectedSchoolName = ref("")
+
 // Input state (ยังไม่ filter)
 const searchQueryInput = ref("")
 const filterTypeInput = ref("")
@@ -31,8 +35,9 @@ function handleAdded(data) {
     console.log("🎉 School added:", data)
 }
 
-function handleDeleted() {
-    console.log("Deleted")
+function handleDeleted(deletedSchool) {
+    console.log("Deleted:", deletedSchool)
+    fetchSchools()
 }
 
 // Fetch schools from API
@@ -113,7 +118,15 @@ function handleSearch() {
     activeFilterStatus.value = filterStatusInput.value
     currentPage.value = 1
 }
+
+// เปิด modal delete พร้อมส่ง school
+function confirmDelete(school) {
+    selectedSchoolId.value = school.id
+    selectedSchoolName.value = school.schoolName
+    isDeleteModalOpen.value = true
+}
 </script>
+
 
 <template>
     <div class="p-6 relative">
@@ -154,11 +167,13 @@ function handleSearch() {
                     <option>Inactive</option>
                 </select>
 
-                <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Search</button>
+                <button @click="handleSearch"
+                    class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Search</button>
             </div>
 
             <div class="flex gap-3 mt-4">
-                <button @click="isCreateSchoolModalOpen = true" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                <button @click="isCreateSchoolModalOpen = true"
+                    class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                     + Create School
                 </button>
                 <button @click="isAddSchoolModalOpen = true"
@@ -197,11 +212,12 @@ function handleSearch() {
                                     <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                                 </button>
                                 <button class="bg-color-main-red text-white px-2 py-1 rounded"
-                                    @click="isDeleteModalOpen = true">
+                                    @click="confirmDelete(school)">
                                     <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                                 </button>
                             </div>
                         </td>
+
                         <td class="p-3 text-center">{{ school.id }}</td>
                         <td class="p-3 text-center">{{ school.schoolName }}</td>
                         <td class="p-3 text-center">{{ school.schoolType }}</td>
@@ -244,7 +260,8 @@ function handleSearch() {
 
         <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
         <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
-        <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
+        <DeleteSchoolModal v-model="isDeleteModalOpen"
+            :school="{ id: selectedSchoolId, schoolName: selectedSchoolName }" @deleted="handleDeleted" />
     </div>
 </template>
 

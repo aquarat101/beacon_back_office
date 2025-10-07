@@ -4,35 +4,70 @@ import { ref } from "vue"
 const props = defineProps({
     modelValue: { type: Boolean, default: false }
 })
-const emit = defineEmits(["update:modelValue", "added"])
+const emit = defineEmits(["update:modelValue", "created"])
 
 const form = ref({
     name: "",
     email: "",
     phone_number: "",
     role: "",
-    school: ""  
+    school: ""
 })
+
+const isLoading = ref(false)
 
 function closeModal() {
     emit("update:modelValue", false)
 }
 
-function addSchool() {
-    console.log("✅ Form submitted:", form.value)
-    // 👉 เรียก API ได้ที่นี่
-    emit("added", form.value)
-    closeModal()
+async function createUser() {
+    // Validate required fields
+    if (!form.value.name || !form.value.email || !form.value.phone_number || !form.value.role || !form.value.school) {
+        alert("Please fill all required fields")
+        return
+    }
+
+    try {
+        isLoading.value = true
+
+        const res = await fetch("http://localhost:3001/schools/createUser", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form.value)
+        })
+
+        const data = await res.json()
+
+        if (res.ok && data.success) {
+            emit("created", data.data)
+            closeModal()
+        } else {
+            alert(data.message || "Failed to create user")
+        }
+    } catch (err) {
+        console.error("❌ Error creating user:", err)
+        alert("Error creating user")
+    } finally {
+        isLoading.value = false
+    }
 }
 </script>
 
 <template>
     <div v-if="props.modelValue"
         class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md relative">
+
+            <!-- Loading overlay -->
+            <div v-if="isLoading"
+                class="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
+                <div class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 animate-spin mb-3"></div>
+                <p class="text-gray-600">Creating user...</p>
+            </div>
+
             <!-- Header -->
             <div class="flex justify-between items-center px-6 py-4 border-b">
-                <h2 class="text-lg font-semibold">Add School</h2>
+                <h2 class="text-lg font-semibold">Add Back Office User</h2>
                 <button @click="closeModal" class="text-gray-500 hover:text-black text-xl">&times;</button>
             </div>
 
@@ -40,34 +75,34 @@ function addSchool() {
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">Name<span class="text-red-500">*</span></label>
-                    <input v-model="form.name" type="text" placeholder="Search"
+                    <input v-model="form.name" type="text"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Email<span class="text-red-500">*</span></label>
-                    <input v-model="form.email" type="text" placeholder="Search"
+                    <input v-model="form.email" type="email"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Phone number<span class="text-red-500">*</span></label>
-                    <input v-model="form.phone_number" type="text" placeholder="Search"
+                    <label class="block text-sm font-medium mb-1">Phone number<span
+                            class="text-red-500">*</span></label>
+                    <input v-model="form.phone_number" type="text"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Role<span class="text-red-500">*</span></label>
-                    <input v-model="form.role" type="text" placeholder="Search"
+                    <input v-model="form.role" type="text"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">School<span
-                            class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium mb-1">School<span class="text-red-500">*</span></label>
                     <select v-model="form.school"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                        <option disabled value="">Search</option>
+                        <option disabled value="">Select School</option>
                         <option>School 1</option>
                         <option>School 2</option>
                         <option>School 3</option>
@@ -76,15 +111,19 @@ function addSchool() {
             </div>
 
             <!-- Footer -->
-            <div class="flex justify-end gap-3 px-6 py-4 border-t">
-                <button @click="closeModal"
-                    class="px-6 py-2 border rounded-md text-blue-500 border-blue-300 hover:bg-gray-100">
-                    Cancel
-                </button>
-                <button @click="addSchool" class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+            <div class="flex justify-end px-6 py-4 border-t">
+                <button @click="closeModal" class="px-4 py-2 mr-3 border rounded-md">Cancel</button>
+                <button @click="createUser" class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md">
                     Add
-                </button>
+                </button>   
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.loader {
+    border: 4px solid #ddd;
+    border-top-color: #3b82f6;
+}
+</style>

@@ -198,7 +198,7 @@ function deleteSchool() { }
 
                     <div class="text-sm text-gray-500 mt-1">School ID: {{ school.id }}</div>
                 </div>
-                <button class="flex bg-blue-500 text-white px-4 py-2 rounded"
+                <button class="flex bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded"
                     @click="$router.push(`/schools/edit/${school.id}`)">
                     <img src="/images/edit.png" alt="edit" class="w-5 h-5 mr-1 mt-0.5">
                     Edit

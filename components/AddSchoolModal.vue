@@ -6,6 +6,8 @@ const props = defineProps({
 })
 const emit = defineEmits(["update:modelValue", "created"])
 
+const { public: config } = useRuntimeConfig()
+
 const form = ref({
     name: "",
     email: "",
@@ -30,7 +32,7 @@ async function createUser() {
     try {
         isLoading.value = true
 
-        const res = await fetch("http://localhost:3001/schools/createUser", {
+        const res = await fetch(`${config.apiDomain}/schools/createSchool`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(form.value)
@@ -75,26 +77,26 @@ async function createUser() {
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">Name<span class="text-red-500">*</span></label>
-                    <input v-model="form.name" type="text"
+                    <input v-model="form.name" type="text" placeholder="name"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Email<span class="text-red-500">*</span></label>
-                    <input v-model="form.email" type="email"
+                    <input v-model="form.email" type="email" placeholder="email"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Phone number<span
                             class="text-red-500">*</span></label>
-                    <input v-model="form.phone_number" type="text"
+                    <input v-model="form.phone_number" type="text" placeholder="phone number"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Role<span class="text-red-500">*</span></label>
-                    <input v-model="form.role" type="text"
+                    <input v-model="form.role" type="text" placeholder="role"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 

@@ -6,6 +6,8 @@ const props = defineProps({
 })
 const emit = defineEmits(["update:modelValue", "created"])
 
+const { public: config } = useRuntimeConfig()
+
 const form = ref({
     schoolName: "",
     schoolType: "",
@@ -27,7 +29,7 @@ async function createSchool() {
     try {
         isLoading.value = true
 
-        const res = await fetch("http://localhost:3001/schools/create", {
+        const res = await fetch(`${config.apiDomain}/schools/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(form.value)
@@ -72,7 +74,7 @@ async function createSchool() {
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">School Name<span class="text-red-500">*</span></label>
-                    <input v-model="form.schoolName" type="text"
+                    <input v-model="form.schoolName" type="text" placeholder="school name"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 

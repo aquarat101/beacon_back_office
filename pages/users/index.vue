@@ -5,101 +5,46 @@ import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolModal from "~~/components/AddSchoolModal.vue"
 import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
 
-// route params
+const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
+// ✅ state ของ modal
 const isCreateSchoolModalOpen = ref(false)
 const isAddSchoolModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 
-const staffs = ref([
-    { id: "S001", name: "John Doe", email: "john.doe@mail.com", phone: "0812345678", role: "Admin", status: "Active" },
-    { id: "S002", name: "Jane Smith", email: "jane.smith@mail.com", phone: "0898765432", role: "Staff", status: "Inactive" },
-    { id: "S003", name: "Somchai Lek", email: "somchai@mail.com", phone: "0801112233", role: "User", status: "Active" },
-    { id: "S004", name: "Maria Chan", email: "maria.chan@mail.com", phone: "0823456789", role: "Staff", status: "Active" },
-    { id: "S005", name: "Arthit Wong", email: "arthit@mail.com", phone: "0834567890", role: "Admin", status: "Pending" },
-    { id: "S006", name: "Linda Lee", email: "linda@mail.com", phone: "0845678901", role: "User", status: "Inactive" },
-    { id: "S007", name: "Nattapong J.", email: "nattapong@mail.com", phone: "0856789012", role: "Staff", status: "Active" },
-    { id: "S008", name: "Chanida Ph.", email: "chanida@mail.com", phone: "0867890123", role: "User", status: "Pending" },
-    { id: "S009", name: "David Tan", email: "david.tan@mail.com", phone: "0878901234", role: "Staff", status: "Inactive" },
-    { id: "S010", name: "Apinya S.", email: "apinya@mail.com", phone: "0889012345", role: "Admin", status: "Active" },
-    { id: "S011", name: "Kittisak N.", email: "kittisak@mail.com", phone: "0812223344", role: "User", status: "Active" },
-    { id: "S012", name: "Woranuch L.", email: "woranuch@mail.com", phone: "0823334455", role: "Staff", status: "Pending" },
-    { id: "S013", name: "Michael Chen", email: "michael@mail.com", phone: "0834445566", role: "Admin", status: "Active" },
-    { id: "S014", name: "Supaporn K.", email: "supaporn@mail.com", phone: "0845556677", role: "User", status: "Active" },
-    { id: "S015", name: "Tawan P.", email: "tawan@mail.com", phone: "0856667788", role: "Staff", status: "Pending" },
-    { id: "S016", name: "Alice Wong", email: "alice@mail.com", phone: "0867778899", role: "Admin", status: "Active" },
-    { id: "S017", name: "Prasert J.", email: "prasert@mail.com", phone: "0878889900", role: "User", status: "Active" },
-    { id: "S018", name: "Yingluck T.", email: "yingluck@mail.com", phone: "0889990011", role: "Staff", status: "Active" },
-    { id: "S019", name: "Victor Lim", email: "victor@mail.com", phone: "0890001122", role: "Staff", status: "Pending" },
-    { id: "S020", name: "Suchada P.", email: "suchada@mail.com", phone: "0811112233", role: "User", status: "Active" },
-    { id: "S021", name: "Jonathan K.", email: "jonathan@mail.com", phone: "0822223344", role: "Staff", status: "Active" },
-    { id: "S022", name: "Siriwan L.", email: "siriwan@mail.com", phone: "0833334455", role: "Admin", status: "Pending" },
-    { id: "S023", name: "Peter Zhang", email: "peter@mail.com", phone: "0844445566", role: "User", status: "Active" },
-    { id: "S024", name: "Kanokwan R.", email: "kanokwan@mail.com", phone: "0855556677", role: "Staff", status: "Active" },
-    { id: "S025", name: "Matthew G.", email: "matthew@mail.com", phone: "0866667788", role: "User", status: "Pending" },
-    { id: "S026", name: "Sompong T.", email: "sompong@mail.com", phone: "0877778899", role: "Admin", status: "Active" },
-    { id: "S027", name: "Nicha W.", email: "nicha@mail.com", phone: "0888889900", role: "Staff", status: "Active" },
-    { id: "S028", name: "William C.", email: "william@mail.com", phone: "0899990011", role: "User", status: "Active" },
-    { id: "S029", name: "Chaiwat K.", email: "chaiwat@mail.com", phone: "0812349876", role: "Staff", status: "Inactive" },
-    { id: "S030", name: "Suda Ph.", email: "suda@mail.com", phone: "0823456781", role: "Admin", status: "Active" },
-])
+// ✅ staff list (จะมาจาก API)
+const staffs = ref([])
+const isLoading = ref(false)
+const errorMessage = ref("")
 
-function handleCreated(data) {
-    console.log("🎉 School created:", data)
-    // 👉 เช่น push ลง list หรือ refetch API ได้เลย
-}
-
-function handleAdded(data) {
-    console.log("🎉 School added:", data)
-}
-
-function handleDeleted() {
-    console.log("Deleted")
-}
-
-// mock data 90 โรงเรียน
-const schools = Array.from({ length: 90 }, (_, i) => ({
-    id: String(i + 1).padStart(5, "0"),
-    name: `School ${i + 1}`,
-    type: i % 3 === 0 ? "Public" : i % 3 === 1 ? "Private" : "International",
-    level: i % 3 === 0 ? "Elementary" : i % 3 === 1 ? "Middle" : "High",
-    devices: Math.floor(Math.random() * 1500) + 100,
-    status: i % 2 === 0 ? "Active" : "Inactive",
-}))
-
+// ✅ pagination
 const currentPage = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(schools.length / pageSize))
+const totalPages = computed(() => Math.ceil(staffs.value.length / pageSize))
 
+// ✅ pagination slice
 const paginatedStaffs = computed(() => {
     const start = (currentPage.value - 1) * pageSize
     return staffs.value.slice(start, start + pageSize)
 })
 
-// ✅ ฟังก์ชันสร้าง page numbers + ...
+// ✅ สร้างเลขหน้า
 const pageNumbers = computed(() => {
     const pages = []
     const total = totalPages.value
     const current = currentPage.value
 
     if (total <= 5) {
-        // ถ้าน้อยกว่า 5 หน้า แสดงทั้งหมด
         for (let i = 1; i <= total; i++) pages.push(i)
+    } else if (current <= 3) {
+        pages.push(1, 2, 3, 4, 5, "...", total)
+    } else if (current >= total - 2) {
+        pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total)
     } else {
-        if (current <= 3) {
-            // case: หน้าแรกๆ
-            pages.push(1, 2, 3, 4, 5, "...", total)
-        } else if (current >= total - 2) {
-            // case: หน้าสุดท้าย
-            pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total)
-        } else {
-            // case: อยู่ตรงกลาง
-            pages.push(1, "...", current - 1, current, current + 1, "...", total)
-        }
+        pages.push(1, "...", current - 1, current, current + 1, "...", total)
     }
-
     return pages
 })
 
@@ -110,7 +55,46 @@ function goToPage(page) {
     }
 }
 
+// ✅ ฟังก์ชันดึงข้อมูลจาก API
+async function fetchSchoolUsers() {
+    try {
+        isLoading.value = true
+        const res = await fetch(`${config.apiDomain}/schools/getAllUser`)
+        if (!res.ok) throw new Error("Failed to fetch school users")
+
+        const data = await res.json()
+        // สมมติ backend ส่งเป็น { data: [...] }
+        staffs.value = data.data || []
+    } catch (err) {
+        console.error("❌ Fetch error:", err)
+        errorMessage.value = err.message
+    } finally {
+        isLoading.value = false
+    }
+}
+
+// ✅ lifecycle
+onMounted(() => {
+    fetchSchoolUsers()
+})
+
+// ✅ modal events
+function handleCreated(data) {
+    console.log("🎉 School created:", data)
+    fetchSchoolUsers() // refresh list
+}
+
+function handleAdded(data) {
+    console.log("🎉 School added:", data)   
+    fetchSchoolUsers()
+}
+
+function handleDeleted() {
+    console.log("Deleted")
+    fetchSchoolUsers()
+}
 </script>
+
 
 <template>
     <div>
@@ -196,7 +180,7 @@ function goToPage(page) {
 
                             <td class="p-3 text-center">{{ staff.name }}</td>
                             <td class="p-3 text-center">{{ staff.email }}</td>
-                            <td class="p-3 text-center">{{ staff.phone }}</td>
+                            <td class="p-3 text-center">{{ staff.phone_number }}</td>
                             <td class="p-3 text-center">{{ staff.role }}</td>
 
                             <td class="p-3 text-center">

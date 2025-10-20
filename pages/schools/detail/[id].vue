@@ -1,10 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolModal from "~~/components/AddSchoolModal.vue"
+import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
 
+const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 const schoolId = route.params.id
@@ -23,10 +24,87 @@ const school = ref(null) // <-- ใช้ API
 const staffs = ref([])    // ผู้ใช้โรงเรียน
 const students = ref([])  // อุปกรณ์/นักเรียน
 
+// ---------------- API Functions ----------------
+
+// ดึงข้อมูลโรงเรียน
+async function getSchool(id) {
+    try {
+        const res = await fetch(`${config.apiDomain}/schools/get/${id}`)
+        const json = await res.json()
+        if (json.success) school.value = json.data
+        else console.error("❌ Failed to fetch school")
+    } catch (err) {
+        console.error("🔥 Error fetching school:", err)
+    }
+}
+
+// ดึงผู้ใช้โรงเรียน (staff/admin)
+async function getSchoolStaffs() {
+    try {
+        const res = await fetch(`${config.apiDomain}/schools/getAllUser`)
+        const json = await res.json()
+
+        if (json.success) {
+            staffs.value = json.data || []
+            console.log("staff 1", staffs.value)
+        } else {
+            console.error("❌ Failed to fetch school users")
+        }
+
+    } catch (err) {
+        console.error("🔥 Error fetching school users:", err)
+    }
+}
+
+async function getStudents() {
+    try {
+        const res = await fetch(`${config.apiDomain}/kids/getAllKids`)
+        const json = await res.json()
+
+        if (json.success && Array.isArray(json.data)) {
+            // ใช้ Promise.all เพื่อให้รอทุกอันพร้อมกัน
+            const studentData = await Promise.all(json.data.map(async (kid) => {
+                let placeName = '-'
+
+                // ถ้ามี placeId และ userId → ไปดึงชื่อสถานที่
+                if (kid.userId && kid.placeId) {
+                    try {
+                        const placeRes = await fetch(`${config.apiDomain}/places/${kid.userId}/${kid.zoneId}`)
+                        const placeJson = await placeRes.json()
+                        if (placeJson.success && placeJson.data?.name) {
+                            placeName = placeJson.data.name
+                        }
+                    } catch (err) {
+                        console.warn(`⚠️ Fetch place failed for kid ${kid.name}`, err)
+                    }
+                }
+
+                return {
+                    id: kid.id,
+                    serialNumber: kid.beaconId,
+                    deviceName: kid.name,
+                    school: placeName, // 👈 ใส่ชื่อ place ที่ได้
+                    location: kid.lastLocation,
+                    status: kid.status || 'Active'
+                }
+            }))
+
+            students.value = studentData
+            console.log("✅ Students loaded with place names:", students.value)
+        } else {
+            console.warn("⚠️ No kids data found or invalid format")
+        }
+
+    } catch (err) {
+        console.error("🔥 Error fetching students:", err)
+    }
+}
+
 // Pagination
 const currentPage = ref(1)
 const pageSize = 10
 const totalPages = computed(() => Math.ceil(staffs.value.length / pageSize))
+
 const paginatedStaffs = computed(() => {
     const start = (currentPage.value - 1) * pageSize
     return staffs.value.slice(start, start + pageSize)
@@ -55,47 +133,6 @@ function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) currentPage.value = page
 }
 
-// ---------------- API Functions ----------------
-
-// ดึงข้อมูลโรงเรียน
-async function getSchool(id) {
-    try {
-        const res = await fetch(`http://localhost:3001/schools/get/${id}`)
-        const json = await res.json()
-        if (json.success) school.value = json.data
-        else console.error("❌ Failed to fetch school")
-        console.log(school.value)
-        console.log(school.value.schoolName)
-    } catch (err) {
-        console.error("🔥 Error fetching school:", err)
-    }
-}
-
-// ดึงผู้ใช้โรงเรียน (staff/admin)
-async function getSchoolStaffs() {
-    try {
-        const res = await fetch(`http://localhost:3001/schools/getAllUser`)
-        const json = await res.json()
-        if (json.success) staffs.value = json.data.users || []
-        else console.error("❌ Failed to fetch school users")
-    } catch (err) {
-        console.error("🔥 Error fetching school users:", err)
-    }
-}
-
-// ดึงนักเรียน/อุปกรณ์ (mock หรือ API)
-async function getStudents() {
-    // ถ้ามี API ของนักเรียน ให้ fetch มาแทน mock
-    students.value = Array.from({ length: 50 }, (_, i) => ({
-        id: `ST${String(i + 1).padStart(3, '0')}`,
-        serialNumber: `SN${1000 + i}`,
-        deviceNumber: `DV${2000 + i}`,
-        school: school.value?.name || '',
-        location: `Zone ${i % 5 + 1} (${new Date().toLocaleTimeString()})`,
-        status: i % 2 === 0 ? "Active" : "Inactive"
-    }))
-}
-
 // ---------------- Handlers ----------------
 function handleCreated(data) { console.log("🎉 School created:", data) }
 function handleAdded(data) { console.log("🎉 School added:", data) }
@@ -107,10 +144,11 @@ function handleDelete() {
 
 // Load data on mount
 onMounted(async () => {
-    await getSchool(schoolId)
     await getSchoolStaffs()
+    await getSchool(schoolId)
     await getStudents()
 })
+
 </script>
 
 
@@ -137,7 +175,7 @@ onMounted(async () => {
             </button>
         </div>
 
-        <!-- Tab content -->
+        <!-- Info tab -->
         <div v-if="currentTab === 'info'" class="bg-white p-6 rounded-xl shadow">
             <div class="flex items-center justify-between mb-6">
                 <div>
@@ -166,7 +204,8 @@ onMounted(async () => {
                     <p><strong>School Type</strong> <br> {{ school?.schoolType }}</p>
                     <p class="mt-2"><strong>Education Level</strong> <br> {{ school?.educationLevel }}</p>
                     <p class="mt-2"><strong>Address</strong> <br> {{ school?.address }}</p>
-                    <p class="mt-2"><strong>Latitude / Longitude</strong> <br> {{ school?.latitude }} / {{ school?.longtitude }}</p>
+                    <p class="mt-2"><strong>Latitude / Longitude</strong> <br> {{ school?.latitude }} / {{
+                        school?.longtitude }}</p>
                     <p class="mt-2"><strong>Contact Number</strong> <br> {{ school?.contactNumber }}</p>
                     <p class="mt-2"><strong>School Email</strong> <br> {{ school?.schoolEmail }}</p>
                     <p class="mt-2"><strong>Website</strong> <br>
@@ -183,10 +222,7 @@ onMounted(async () => {
 
 
 
-
-
-
-        <!-- Placeholder tabs -->
+        <!-- Staffs tab -->
         <div v-if="currentTab === 'staff'" class="bg-white p-6 rounded-xl shadow">
 
             <div class="">
@@ -279,7 +315,7 @@ onMounted(async () => {
 
                                 <td class="p-3 text-center">{{ staff.name }}</td>
                                 <td class="p-3 text-center">{{ staff.email }}</td>
-                                <td class="p-3 text-center">{{ staff.phone }}</td>
+                                <td class="p-3 text-center">{{ staff.phone_number }}</td>
                                 <td class="p-3 text-center">{{ staff.role }}</td>
 
                                 <td class="p-3 text-center">
@@ -332,8 +368,7 @@ onMounted(async () => {
 
 
 
-
-
+        <!-- Students tab -->
         <div v-if="currentTab === 'students'" class="bg-white p-6 rounded-xl shadow">
             <div class="">
                 <!-- Page Title -->
@@ -406,7 +441,7 @@ onMounted(async () => {
                                 </td>
 
                                 <td class="p-3 text-center">{{ student.serialNumber }}</td>
-                                <td class="p-3 text-center">{{ student.deviceNumber }}</td>
+                                <td class="p-3 text-center">{{ student.deviceName }}</td>
                                 <td class="p-3 text-center">{{ student.school }}</td>
                                 <td class="p-3 text-center">{{ student.location }}</td>
 

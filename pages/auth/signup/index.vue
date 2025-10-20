@@ -6,6 +6,7 @@ definePageMeta({
     layout: false
 })
 
+const { public: config } = useRuntimeConfig()
 const router = useRouter()
 
 const name = ref('')
@@ -29,17 +30,17 @@ const handleSubmit = async () => {
 
     try {
         showModal.value = true
-        modalMessage.value = 'กำลังสร้างบัญชี...'
+        modalMessage.value = 'Signing up...'
         loading.value = true
 
-        const { data, error } = await useFetch('http://localhost:3001/auth/register', {
+        const { data, error } = await useFetch(`${config.apiDomain}/auth/register`, {
             method: 'POST',
             body: { name: name.value, email: email.value, password: password.value }
         })
 
         if (error.value) throw error.value.data?.message || 'Registration failed'
 
-        modalMessage.value = '✅ สมัครสมาชิกสำเร็จ!'
+        modalMessage.value = '✅ Signup successfully!!!'
         setTimeout(() => {
             showModal.value = false
             router.push('/auth/login')

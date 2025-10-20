@@ -6,6 +6,8 @@ definePageMeta({
     layout: false
 })
 
+const { public: config } = useRuntimeConfig()
+
 const email = ref('')
 const password = ref('')
 const isPasswordVisible = ref(false)
@@ -19,10 +21,10 @@ const handleSubmit = async () => {
     errorMessage.value = ''
     try {
         showModal.value = true
-        modalMessage.value = 'กำลังเข้าสู่ระบบ...'
+        modalMessage.value = 'Logging in...'
         loading.value = true
 
-        const { data, error } = await useFetch('http://localhost:3001/auth/login', {
+        const { data, error } = await useFetch(`${config.apiDomain}/auth/login`, {
             method: 'POST',
             body: { email: email.value, password: password.value }
         })
@@ -32,7 +34,7 @@ const handleSubmit = async () => {
         localStorage.setItem('token', data.value.token)
         localStorage.setItem('user', JSON.stringify(data.value.user))
 
-        modalMessage.value = '✅ เข้าสู่ระบบสำเร็จ!'
+        modalMessage.value = '✅ Login successfully!!!'
         setTimeout(() => {
             showModal.value = false
             router.push('/dashboard')

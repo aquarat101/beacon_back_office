@@ -4,6 +4,8 @@ import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolModal from "~~/components/AddSchoolModal.vue"
 import DeleteSchoolModal from "~~/components/DeleteSchoolModal.vue"
 
+const { public: config } = useRuntimeConfig()
+
 const isCreateSchoolModalOpen = ref(false)
 const isAddSchoolModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
@@ -44,7 +46,7 @@ function handleDeleted(deletedSchool) {
 async function fetchSchools() {
     try {
         isLoading.value = true
-        const res = await fetch("http://localhost:3001/schools/getAll")
+        const res = await fetch(`${config.apiDomain}/schools/getAll`)
         const json = await res.json()
         if (json.success) {
             schools.value = json.data

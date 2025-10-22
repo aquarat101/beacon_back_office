@@ -8,7 +8,6 @@ const props = defineProps({
         default: () => ({
             id: '',
             name: '',
-            userId: '',
         })
     }
 })

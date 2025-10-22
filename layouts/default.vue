@@ -1,15 +1,67 @@
 <script setup>
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
+const { public: config } = useRuntimeConfig()
 
-const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', img: '/images/layout/dashboard.png' },
-    { name: 'Schools', path: '/schools', img: '/images/layout/school.png' },
-    { name: 'Devices', path: '/devices', img: '/images/layout/device.png' },
-    { name: 'Users', path: '/users', img: '/images/layout/user.png' },
-    { name: 'System Log', path: '/system_log', img: '/images/layout/system_log.png' }
-]
+const user = ref({})
+const schoolId = ref('')
+const menuItems = ref([])
+
+onMounted(() => {
+    // ✅ ตรวจสอบ client ก่อนเข้าถึง localStorage
+    if (process.client) {
+        const storedUser = localStorage.getItem('user')
+        if (storedUser) {
+            user.value = JSON.parse(storedUser)
+            schoolId.value = user.value.school || ''
+        }
+
+        if (schoolId.value) {
+            menuItems.value = [
+                { name: 'Dashboard', path: `/dashboard/${schoolId.value}`, img: '/images/layout/dashboard.png' },
+                { name: 'Schools', path: `/schools/${schoolId.value}`, img: '/images/layout/school.png' },
+                { name: 'Devices', path: `/devices/${schoolId.value}`, img: '/images/layout/device.png' },
+                { name: 'Users', path: `/users/${schoolId.value}`, img: '/images/layout/user.png' },
+                { name: 'System Log', path: `/system_log/${schoolId.value}`, img: '/images/layout/system_log.png' }
+            ]
+        } else {
+            menuItems.value = [
+                { name: 'Dashboard', path: '/dashboard', img: '/images/layout/dashboard.png' },
+                { name: 'Schools', path: '/schools', img: '/images/layout/school.png' },
+                { name: 'Devices', path: '/devices', img: '/images/layout/device.png' },
+                { name: 'Users', path: '/users', img: '/images/layout/user.png' },
+                { name: 'System Log', path: '/system_log', img: '/images/layout/system_log.png' }
+            ]
+        }
+    }
+})
+
+// ✅ Logout function
+const logout = async () => {
+    try {
+        if (!user.value?.email) return router.push('/auth/login')
+
+        await $fetch(`${config.apiBase}/auth/logout`, {
+            method: 'POST',
+            body: { email: user.value.email }
+        })
+
+        // ล้าง localStorage
+        if (process.client) {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            localStorage.removeItem('schoolName')
+            localStorage.removeItem('schoolId')
+        }
+
+        router.push('/auth/login')
+    } catch (err) {
+        console.error('Logout failed:', err)
+    }
+}
 </script>
 
 
@@ -49,15 +101,12 @@ const menuItems = [
 
             <!-- Bottom Profile -->
             <div class="mt-auto border-t p-4 flex items-center gap-2 text-sm text-gray-600">
-                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    👤
-                </div>
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">👤</div>
                 <div>
-                    <div class="font-medium">Admin</div>
-                    <div class="text-xs">admin@mail.com</div>
+                    <div class="font-medium">{{ user.value?.name || 'Admin' }}</div>
+                    <div class="text-xs">{{ user.value?.email || 'admin@mail.com' }}</div>
                 </div>
-                <button class="ml-auto text-gray-500 hover:text-black"
-                    @click="$router.push(`/auth/login`)">
+                <button class="ml-auto text-gray-500 hover:text-black" @click="logout">
                     <img src="/images/layout/log_out.png" alt="log_out" class="w-6 h-6">
                 </button>
             </div>

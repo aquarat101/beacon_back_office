@@ -277,7 +277,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <DeleteKidModal v-if="beacon" v-model="deleteModalOpen" :kid="{ id: beacon.id, name: beacon.name, userId }"
+            <DeleteKidModal v-if="beacon" v-model="deleteModalOpen" :kid="{ id: beacon.id, name: beacon.name }"
                 @deleted="handleDelete" />
 
         </div>

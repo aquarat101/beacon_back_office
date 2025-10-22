@@ -2,16 +2,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
-import AddSchoolModal from "~~/components/AddSchoolModal.vue"
-import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
+import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue"
+import DeleteSchoolUserModal from '~/components/DeleteSchoolUserModal.vue'
 
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
+const selectedSchoolUserId = ref("")
+const selectedSchoolUserName = ref("")
+
 // ✅ state ของ modal
 const isCreateSchoolModalOpen = ref(false)
-const isAddSchoolModalOpen = ref(false)
+const isAddSchoolAdminModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 
 // ✅ staff list (จะมาจาก API)
@@ -85,7 +88,7 @@ function handleCreated(data) {
 }
 
 function handleAdded(data) {
-    console.log("🎉 School added:", data)   
+    console.log("🎉 School added:", data)
     fetchSchoolUsers()
 }
 
@@ -93,6 +96,14 @@ function handleDeleted() {
     console.log("Deleted")
     fetchSchoolUsers()
 }
+
+function confirmDelete(staff) {
+    selectedSchoolUserId.value = staff.id
+    selectedSchoolUserName.value = staff.name
+    isDeleteModalOpen.value = true
+    console.log(selectedSchoolUserId.value, selectedSchoolUserName.value)
+}
+
 </script>
 
 
@@ -126,7 +137,7 @@ function handleDeleted() {
                 </div>
 
                 <div class="flex gap-3 mt-4">
-                    <button @click="isAddSchoolModalOpen = true"
+                    <button @click="isAddSchoolAdminModalOpen = true"
                         class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
                         <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4">
                         Add School Admin
@@ -172,7 +183,7 @@ function handleDeleted() {
                                     </button>
 
                                     <button class="bg-color-main-red text-white px-2 py-1 rounded"
-                                        @click="isDeleteModalOpen = true">
+                                        @click="confirmDelete(staff)">
                                         <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                                     </button>
                                 </div>
@@ -226,7 +237,8 @@ function handleDeleted() {
         </div>
 
         <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-        <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
-        <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
+        <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
+        <DeleteSchoolUserModal v-model="isDeleteModalOpen"
+            :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }" @deleted="handleDeleted" />
     </div>
 </template>

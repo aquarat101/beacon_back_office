@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from "vue"
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
-import AddSchoolModal from "~~/components/AddSchoolModal.vue"
+import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue"
 import DeleteSchoolModal from "~~/components/DeleteSchoolModal.vue"
 
 const { public: config } = useRuntimeConfig()
 
 const isCreateSchoolModalOpen = ref(false)
-const isAddSchoolModalOpen = ref(false)
+const isAddSchoolAdminModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 const isLoading = ref(false)
 const schools = ref([])
@@ -178,7 +178,8 @@ function confirmDelete(school) {
                     class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                     + Create School
                 </button>
-                <button @click="isAddSchoolModalOpen = true"
+                
+                <button @click="isAddSchoolAdminModalOpen = true"
                     class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                     <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4"> Add School Admin
                 </button>
@@ -261,7 +262,7 @@ function confirmDelete(school) {
         </div>
 
         <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-        <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
+        <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
         <DeleteSchoolModal v-model="isDeleteModalOpen"
             :school="{ id: selectedSchoolId, schoolName: selectedSchoolName }" @deleted="handleDeleted" />
     </div>

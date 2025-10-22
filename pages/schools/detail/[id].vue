@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AddSchoolModal from "~~/components/AddSchoolModal.vue"
+import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue"
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
 
@@ -10,146 +10,190 @@ const route = useRoute()
 const router = useRouter()
 const schoolId = route.params.id
 
-// Modal states
+// ---------------- Modal ----------------
 const deleteModalOpen = ref(false)
 const isCreateSchoolModalOpen = ref(false)
-const isAddSchoolModalOpen = ref(false)
+const isAddSchoolAdminModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 
-// Tabs
+// ---------------- Tabs ----------------
 const currentTab = ref('info')
 
-// Data
-const school = ref(null) // <-- ใช้ API
-const staffs = ref([])    // ผู้ใช้โรงเรียน
-const students = ref([])  // อุปกรณ์/นักเรียน
+// ---------------- Data ----------------
+const school = ref(null)
+const staffs = ref([])
+const students = ref([])
 
-// ---------------- API Functions ----------------
+// ---------------- Staff Filter Inputs ----------------
+const staffSearchInput = ref('')
+const staffRoleInput = ref('')
+const staffStatusInput = ref('')
 
-// ดึงข้อมูลโรงเรียน
+// Active filters (ใช้คำนวณจริง)
+const staffSearchActive = ref('')
+const staffRoleActive = ref('')
+const staffStatusActive = ref('')
+
+// ---------------- Student Filter Inputs ----------------
+const studentSearchInput = ref('')
+const studentStatusInput = ref('')
+
+// Active filters
+const studentSearchActive = ref('')
+const studentStatusActive = ref('')
+
+// ---------------- Pagination ----------------
+const currentPage = ref(1)
+const pageSize = 10
+
+// ---------------- Fetch API ----------------
 async function getSchool(id) {
     try {
         const res = await fetch(`${config.apiDomain}/schools/get/${id}`)
         const json = await res.json()
         if (json.success) school.value = json.data
-        else console.error("❌ Failed to fetch school")
     } catch (err) {
-        console.error("🔥 Error fetching school:", err)
+        console.error(err)
     }
 }
 
-// ดึงผู้ใช้โรงเรียน (staff/admin)
 async function getSchoolStaffs() {
     try {
         const res = await fetch(`${config.apiDomain}/schools/getAllUser`)
         const json = await res.json()
-
-        if (json.success) {
-            staffs.value = json.data || []
-            console.log("staff 1", staffs.value)
-        } else {
-            console.error("❌ Failed to fetch school users")
-        }
-
+        if (json.success) staffs.value = json.data || []
     } catch (err) {
-        console.error("🔥 Error fetching school users:", err)
+        console.error(err)
     }
 }
 
 async function getStudents() {
     try {
-        const res = await fetch(`${config.apiDomain}/kids/getAllKids`)
+        const res = await fetch(`${config.apiDomain}/schools/${schoolId}/getAllStudent`)
         const json = await res.json()
-
-        if (json.success && Array.isArray(json.data)) {
-            // ใช้ Promise.all เพื่อให้รอทุกอันพร้อมกัน
-            const studentData = await Promise.all(json.data.map(async (kid) => {
-                let placeName = '-'
-
-                // ถ้ามี placeId และ userId → ไปดึงชื่อสถานที่
-                if (kid.userId && kid.placeId) {
-                    try {
-                        const placeRes = await fetch(`${config.apiDomain}/places/${kid.userId}/${kid.zoneId}`)
-                        const placeJson = await placeRes.json()
-                        if (placeJson.success && placeJson.data?.name) {
-                            placeName = placeJson.data.name
-                        }
-                    } catch (err) {
-                        console.warn(`⚠️ Fetch place failed for kid ${kid.name}`, err)
-                    }
-                }
-
-                return {
-                    id: kid.id,
-                    serialNumber: kid.beaconId,
-                    deviceName: kid.name,
-                    school: placeName, // 👈 ใส่ชื่อ place ที่ได้
-                    location: kid.lastLocation,
-                    status: kid.status || 'Active'
-                }
-            }))
-
-            students.value = studentData
-            console.log("✅ Students loaded with place names:", students.value)
-        } else {
-            console.warn("⚠️ No kids data found or invalid format")
+        if (!json.success) return console.warn("No students found")
+        const studentRefs = json.data
+        if (studentRefs.length === 0) {
+            students.value = []
+            return
         }
 
+        const kidIds = studentRefs.map(s => s.kidId)
+        const kidsRes = await fetch(`${config.apiDomain}/kids/getMultiKid`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: kidIds })
+        })
+        const kidsJson = await kidsRes.json()
+        if (!kidsJson.success) return console.warn("No kids data found")
+
+        students.value = kidsJson.data.map(kid => ({
+            id: kid.id,
+            serialNumber: kid.beaconId,
+            deviceName: kid.name,
+            school: school.value.schoolName,
+            location: kid.lastLocation || "-",
+            status: kid.status || "Active"
+        }))
     } catch (err) {
         console.error("🔥 Error fetching students:", err)
     }
 }
 
-// Pagination
-const currentPage = ref(1)
-const pageSize = 10
-const totalPages = computed(() => Math.ceil(staffs.value.length / pageSize))
+// ---------------- Filters ----------------
+const filteredStaffs = computed(() => {
+    return staffs.value.filter(s => {
+        const matchesSearch =
+            !staffSearchActive.value ||
+            s.name.toLowerCase().includes(staffSearchActive.value.toLowerCase()) ||
+            s.email.toLowerCase().includes(staffSearchActive.value.toLowerCase())
+
+        const matchesRole =
+            !staffRoleActive.value || s.role === staffRoleActive.value
+
+        const matchesStatus =
+            !staffStatusActive.value || s.status === staffStatusActive.value
+
+        return matchesSearch && matchesRole && matchesStatus
+    })
+})
+
+const filteredStudents = computed(() => {
+    return students.value.filter(s => {
+        const matchesSearch =
+            !studentSearchActive.value ||
+            s.deviceName.toLowerCase().includes(studentSearchActive.value.toLowerCase()) ||
+            s.serialNumber.toLowerCase().includes(studentSearchActive.value.toLowerCase())
+
+        const matchesStatus =
+            !studentStatusActive.value || s.status === studentStatusActive.value
+
+        return matchesSearch && matchesStatus
+    })
+})
+
+// ---------------- Pagination Logic ----------------
+const totalPages = computed(() => Math.ceil(
+    (currentTab.value === 'staff' ? filteredStaffs.value.length : filteredStudents.value.length) / pageSize
+))
 
 const paginatedStaffs = computed(() => {
     const start = (currentPage.value - 1) * pageSize
-    return staffs.value.slice(start, start + pageSize)
-})
-const paginatedStudents = computed(() => {
-    const start = (currentPage.value - 1) * pageSize
-    return students.value.slice(start, start + pageSize)
+    return filteredStaffs.value.slice(start, start + pageSize)
 })
 
-// Page numbers with "..."
+const paginatedStudents = computed(() => {
+    const start = (currentPage.value - 1) * pageSize
+    return filteredStudents.value.slice(start, start + pageSize)
+})
+
 const pageNumbers = computed(() => {
     const pages = []
     const total = totalPages.value
     const current = currentPage.value
-    if (total <= 5) {
-        for (let i = 1; i <= total; i++) pages.push(i)
-    } else {
+    if (total <= 5) for (let i = 1; i <= total; i++) pages.push(i)
+    else {
         if (current <= 3) pages.push(1, 2, 3, 4, 5, "...", total)
-        else if (current >= total - 2) pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total)
-        else pages.push(1, "...", current - 1, current, current + 1, "...", total)
+        else if (current >= total - 2)
+            pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total)
+        else
+            pages.push(1, "...", current - 1, current, current + 1, "...", total)
     }
     return pages
 })
 function goToPage(page) {
-    if (page === "...") return
-    if (page >= 1 && page <= totalPages.value) currentPage.value = page
+    if (page !== '...' && page >= 1 && page <= totalPages.value)
+        currentPage.value = page
+}
+
+// ---------------- Search Handlers ----------------
+function handleSearchStaff() {
+    staffSearchActive.value = staffSearchInput.value
+    staffRoleActive.value = staffRoleInput.value
+    staffStatusActive.value = staffStatusInput.value
+    currentPage.value = 1
+}
+
+function handleSearchStudent() {
+    studentSearchActive.value = studentSearchInput.value
+    studentStatusActive.value = studentStatusInput.value
+    currentPage.value = 1
 }
 
 // ---------------- Handlers ----------------
 function handleCreated(data) { console.log("🎉 School created:", data) }
-function handleAdded(data) { console.log("🎉 School added:", data) }
+function handleAdded(data) { console.log("🎉 Admin added:", data) }
 function handleDeleted() { console.log("Deleted") }
-function handleDelete() {
-    console.log('Deleted school:', school.value)
-    router.push('/schools')
-}
+function handleDelete() { console.log('Deleted school:', school.value); router.push('/schools') }
 
-// Load data on mount
+// ---------------- Load ----------------
 onMounted(async () => {
     await getSchoolStaffs()
     await getSchool(schoolId)
     await getStudents()
 })
-
 </script>
+
 
 
 <template>
@@ -240,40 +284,42 @@ onMounted(async () => {
                 <!-- Search & Filters -->
                 <div class="bg-white pt-3 rounded-xl mb-4">
                     <div class="flex flex-wrap gap-3 items-center">
-                        <input type="text" placeholder="Search" class="border rounded-lg px-3 py-2 flex-1" />
+                        <input type="text" v-model="staffSearchInput" placeholder="Search by name/email"
+                            class="border rounded-lg px-3 py-2 flex-1" />
 
-                        <select class="border rounded-lg px-3 py-2 pr-20">
-                            <option>Role</option>
+                        <select v-model="staffRoleInput" class="border rounded-lg px-3 py-2">
+                            <option value="">Role</option>
                             <option>Admin</option>
                             <option>Staff</option>
                             <option>User</option>
                         </select>
 
-                        <select class="border rounded-lg px-3 py-2 pr-16">
-                            <option>Status</option>
+                        <select v-model="staffStatusInput" class="border rounded-lg px-3 py-2">
+                            <option value="">Status</option>
                             <option>Active</option>
                             <option>Inactive</option>
                         </select>
 
-                        <button class="bg-color-main2 text-white px-4 py-2 rounded-lg">
+                        <button class="bg-color-main2 text-white px-4 py-2 rounded-lg" @click="handleSearchStaff">
                             Search
                         </button>
                     </div>
 
                     <div class="flex gap-3 mt-4">
-                        <button @click="isAddSchoolModalOpen = true"
+                        <button @click="isAddSchoolAdminModalOpen = true"
                             class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
-                            <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4">
+                            <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4" />
                             Add School Admin
                         </button>
 
                         <button @click="isDeleteModalOpen = true"
                             class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
-                            <img src="/images/trash.png" alt="trash" class="w-5 h-5">
+                            <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
                             Delete
                         </button>
                     </div>
                 </div>
+
 
                 <!-- Table -->
                 <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -361,7 +407,7 @@ onMounted(async () => {
             </div>
 
             <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-            <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
+            <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
             <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
         </div>
 
@@ -385,15 +431,16 @@ onMounted(async () => {
                 <!-- Search & Filters -->
                 <div class="bg-white pt-3 rounded-xl mb-4">
                     <div class="flex flex-wrap gap-3 items-center">
-                        <input type="text" placeholder="Search" class="border rounded-lg px-3 py-2 flex-1" />
+                        <input type="text" v-model="studentSearchInput" placeholder="Search by device name/serial"
+                            class="border rounded-lg px-3 py-2 flex-1" />
 
-                        <select class="border rounded-lg px-3 py-2 pr-16">
-                            <option>Status</option>
-                            <option>Active</option>
-                            <option>Inactive</option>
+                        <select v-model="studentStatusInput" class="border rounded-lg px-3 py-2">
+                            <option value="">Status</option>
+                            <option>online</option>
+                            <option>offline</option>
                         </select>
 
-                        <button class="bg-color-main2 text-white px-4 py-2 rounded-lg">
+                        <button class="bg-color-main2 text-white px-4 py-2 rounded-lg" @click="handleSearchStudent">
                             Search
                         </button>
                     </div>
@@ -401,11 +448,12 @@ onMounted(async () => {
                     <div class="flex gap-3 mt-4">
                         <button @click="isDeleteModalOpen = true"
                             class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
-                            <img src="/images/trash.png" alt="trash" class="w-5 h-5">
+                            <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
                             Delete
                         </button>
                     </div>
                 </div>
+
 
                 <!-- Table -->
                 <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -429,8 +477,11 @@ onMounted(async () => {
                                 <!-- Action buttons -->
                                 <td class="p-3 text-center">
                                     <div class="flex justify-center gap-2">
-                                        <button class="bg-color-main3 text-white px-2 py-1 rounded"
-                                            @click="$router.push(`/schools/detail/student_detail/${student.id}`)">
+                                        <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="$router.push({
+                                            path: `/schools/detail/student_detail/${student.id}`, query: {
+                                                schoolId: schoolId,
+                                            }
+                                        })">
                                             <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                                         </button>
                                         <button class="bg-color-main-red text-white px-2 py-1 rounded"
@@ -484,7 +535,7 @@ onMounted(async () => {
             </div>
 
             <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-            <AddSchoolModal v-model="isAddSchoolModalOpen" @added="handleAdded" />
+            <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
             <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
         </div>
 

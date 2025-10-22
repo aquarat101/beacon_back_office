@@ -1,4 +1,5 @@
 <script setup>
+
 const items = [
   {
     id: 1,
@@ -121,6 +122,11 @@ const coordinates = [
     longtitude: 98.985
   },
 ]
+
+import Cookies from 'js-cookie'
+// อ่านค่า
+const schoolName = Cookies.get('schoolName')
+console.log('schoolName from cookie:', schoolName)
 
 const currentPage = ref(1)
 const pageSize = 10

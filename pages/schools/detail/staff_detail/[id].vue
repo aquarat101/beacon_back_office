@@ -57,10 +57,10 @@ function handleDeleted() {
                     <div class="flex gap-3">
                         <h2 class="text-xl font-bold">{{ staff.name }}</h2>
 
-                        <!-- <div class="flex items-center px-4 rounded-2xl text-white text-sm"
+                        <div class="flex items-center px-4 rounded-2xl text-white text-sm"
                             :class="staff.status === 'Active' ? 'bg-green-500' : 'bg-red-500'">
                             {{ staff.status }}
-                        </div> -->
+                        </div>
                     </div>
 
                     <div class="text-sm text-gray-500 mt-1">staff ID: {{ staff.id }}</div>
@@ -78,9 +78,9 @@ function handleDeleted() {
 
                 <div class="flex-1">
                     <p class="mt-2"><strong>Email</strong><br />{{ staff.email }}</p>
-                    <p class="mt-2"><strong>Phone Number</strong><br />{{ staff.phoneNumber }}</p>
+                    <p class="mt-2"><strong>Phone Number</strong><br />{{ staff.phone_number }}</p>
                     <p class="mt-2"><strong>Role</strong><br />{{ staff.role }}</p>
-                    <p class="mt-2"><strong>School</strong><br />{{ staff.schoolName }}</p>
+                    <p class="mt-2"><strong>School</strong><br />{{ staff.school     }}</p>
 
                     <button @click="deleteModalOpen = true" class="text-blue-500 font-bold mt-4 underline">
                         Delete Staff

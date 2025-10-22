@@ -30,14 +30,22 @@ const handleSubmit = async () => {
         })
 
         if (error.value) throw error.value.data?.message || 'Login failed'
+        
+        console.log(data.value)
 
+        // 🔹 เก็บลง localStorage
         localStorage.setItem('token', data.value.token)
         localStorage.setItem('user', JSON.stringify(data.value.user))
+        localStorage.setItem('schoolId', data.value.user.school || '')
+        localStorage.setItem('schoolName', data.value.user.schoolName || '')
+
+        // localStorage.setItem('token', data.value.token)
+        // localStorage.setItem('user', JSON.stringify(data.value.user))
 
         modalMessage.value = '✅ Login successfully!!!'
         setTimeout(() => {
             showModal.value = false
-            router.push('/dashboard')
+            router.push(`/dashboard/${data.value.user.school}`)
         }, 1500)
     } catch (err) {
         showModal.value = false

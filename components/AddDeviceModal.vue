@@ -2,19 +2,26 @@
 import { ref } from "vue"
 
 const props = defineProps({
-    modelValue: { type: Boolean, default: false }
+    modelValue: { type: Boolean, default: false },
+    schoolId: { type: String, required: true }
+
 })
 const emit = defineEmits(["update:modelValue", "created"])
 
 const { public: config } = useRuntimeConfig()
 
 const form = ref({
-    name: "",
-    email: "",
-    phone_number: "",
-    role: "",
-    school: ""
+    schoolId: props.schoolId,
+    beaconId: "",
+    profileName: "",
+    userId: "",
+    status: ""
 })
+
+watch(() => props.schoolId, (newId) => {
+    form.value.schoolId = newId
+}, { immediate: true })
+
 
 const isLoading = ref(false)
 
@@ -22,9 +29,9 @@ function closeModal() {
     emit("update:modelValue", false)
 }
 
-async function createUser() {
+async function AddDeviceModal() {
     // Validate required fields
-    if (!form.value.name || !form.value.email || !form.value.phone_number || !form.value.role || !form.value.school) {
+    if (!form.value.beaconId || !form.value.profileName || !form.value.userId) {
         alert("Please fill all required fields")
         return
     }
@@ -32,19 +39,26 @@ async function createUser() {
     try {
         isLoading.value = true
 
-        const res = await fetch(`${config.apiDomain}/schools/createSchool`, {
+        const resStudent = await fetch(`${config.apiDomain}/schools/createStudent/${props.schoolId}/${form.value.userId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(form.value)
         })
 
-        const data = await res.json()
+        const resKid = await fetch(`${config.apiDomain}/kids/create/${form.value.userId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form.value)
+        })
 
-        if (res.ok && data.success) {
-            emit("created", data.data)
+        const studentData = await resStudent.json()
+        const kidData = await resKid.json()
+
+        if (studentData.success && kidData.success) {
+            emit("created", studentData, kidData)
             closeModal()
         } else {
-            alert(data.message || "Failed to create user")
+            alert(studentData.message || kidData.message || "Failed to create user")
         }
     } catch (err) {
         console.error("❌ Error creating user:", err)
@@ -76,38 +90,30 @@ async function createUser() {
             <!-- Body -->
             <div class="p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Name<span class="text-red-500">*</span></label>
-                    <input v-model="form.name" type="text" placeholder="name"
+                    <label class="block text-sm font-medium mb-1">Beacon ID<span class="text-red-500">*</span></label>
+                    <input v-model="form.beaconId" type="text" placeholder="beaconId"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Email<span class="text-red-500">*</span></label>
-                    <input v-model="form.email" type="email" placeholder="email"
-                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Phone number<span
+                    <label class="block text-sm font-medium mb-1">Parent User ID<span
                             class="text-red-500">*</span></label>
-                    <input v-model="form.phone_number" type="text" placeholder="phone number"
+                    <input v-model="form.userId" type="text" placeholder="parent user id"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">Role<span class="text-red-500">*</span></label>
-                    <input v-model="form.role" type="text" placeholder="role"
+                    <label class="block text-sm font-medium mb-1">Device Name<span class="text-red-500">*</span></label>
+                    <input v-model="form.profileName" type="text" placeholder="device name"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium mb-1">School<span class="text-red-500">*</span></label>
-                    <select v-model="form.school"
+                    <label class="block text-sm font-medium mb-1">Status<span class="text-red-500">*</span></label>
+                    <select v-model="form.status"
                         class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                        <option disabled value="">Select School</option>
-                        <option>School 1</option>
-                        <option>School 2</option>
-                        <option>School 3</option>
+                        <option>online</option>
+                        <option>offline</option>
                     </select>
                 </div>
             </div>
@@ -115,9 +121,10 @@ async function createUser() {
             <!-- Footer -->
             <div class="flex justify-end px-6 py-4 border-t">
                 <button @click="closeModal" class="px-4 py-2 mr-3 border rounded-md">Cancel</button>
-                <button @click="createUser" class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md">
+                <button @click="AddDeviceModal"
+                    class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md">
                     Add
-                </button>   
+                </button>
             </div>
         </div>
     </div>

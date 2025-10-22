@@ -25,12 +25,12 @@ async function confirmDelete() {
     if (!props.schoolUser.id) return
     try {
         const res = await fetch(`${config.apiDomain}/schools/deleteUser/${props.schoolUser.id}`, {
-            method: 'DELETE'    
+            method: 'DELETE'
         })
         const json = await res.json()
 
         if (json.success) {
-            console.log('✅ Deleted school user:', props.schoolUser)
+            // console.log('✅ Deleted school user:', props.schoolUser)
             emit('deleted', props.schoolUser) // แจ้ง parent
             close()
         } else {
@@ -50,7 +50,7 @@ async function confirmDelete() {
 
                 <div>
                     <p class="text-xl font-bold mb-1 mt-1">
-                        Delete "{{ props.schoolUser.name || "Name Error"}}"?
+                        Delete "{{ props.schoolUser.name || "Name Error" }}"?
                     </p>
                     <p class="text-sm">
                         Are you sure you want to delete this school user?

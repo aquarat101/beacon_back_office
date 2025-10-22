@@ -1,27 +1,57 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import AddDeviceModal from '~/components/AddDeviceModal.vue'
 import DeleteKidModal from '~/components/DeleteKidModal.vue'
 
+const route = useRoute()
 const router = useRouter()
+const schoolId = route.params.id
 
 // modal
 const deleteModalOpen = ref(false)
-const selectedKid = ref(null) // 🟢 kid ที่จะลบ
+const addDeviceModalOpen = ref(false)
+const selectedKid = ref(null)
+
+// search
+const searchQueryInput = ref("")
+const activeSearchQuery = ref("")
+
+function handleSearch() {
+    activeSearchQuery.value = searchQueryInput.value
+    currentPage.value = 1
+}
 
 // data
 const kids = ref([])
 const isLoading = ref(false)
 const errorMessage = ref("")
 
+function handleCreated() {
+    fetchKids()
+}
+
 // pagination
 const currentPage = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(kids.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredKids.value.length / pageSize))
 
+// 🔹 filter kids by search
+const filteredKids = computed(() => {
+    if (!activeSearchQuery.value.trim()) return kids.value
+    const q = activeSearchQuery.value.toLowerCase()
+    return kids.value.filter(kid =>
+        kid.name?.toLowerCase().includes(q) ||
+        kid.beaconId?.toLowerCase().includes(q) ||
+        kid.parentName?.toLowerCase().includes(q) ||
+        kid.placeName?.toLowerCase().includes(q)
+    )
+})
+
+// pagination with search
 const paginatedKids = computed(() => {
     const start = (currentPage.value - 1) * pageSize
-    return kids.value.slice(start, start + pageSize)
+    return filteredKids.value.slice(start, start + pageSize)
 })
 
 // pagination UI
@@ -57,7 +87,6 @@ async function fetchKids() {
         const data = await res.json()
         const rawKids = data.kids || []
 
-        // fetch place + parent
         const kidsWithExtraData = await Promise.all(
             rawKids.map(async kid => {
                 let placeName = "Unknown place"
@@ -79,11 +108,7 @@ async function fetchKids() {
                     }
                 } catch { }
 
-                return {
-                    ...kid,
-                    placeName,
-                    parentName,
-                }
+                return { ...kid, placeName, parentName }
             })
         )
 
@@ -100,28 +125,51 @@ function openDeleteModal(kid) {
     deleteModalOpen.value = true
 }
 
-
-onMounted(fetchKids)
-
-// 🔹 ลบสำเร็จ → รีเฟรช list
 function handleDeleted(kid) {
     kids.value = kids.value.filter(k => k.id !== kid.id)
 }
 
+onMounted(fetchKids)
 </script>
+
 
 <template>
     <div class="p-6">
         <h1 class="text-4xl font-bold mb-6 ml-2 mt-2">Kids</h1>
 
-        <div class="bg-white p-4 rounded-xl shadow mb-4 flex gap-3 items-center">
-            <input type="text" placeholder="Search" class="border rounded-lg px-3 py-2 flex-1" />
-            <button class="bg-color-main2 text-white px-4 py-2 rounded-lg">Search</button>
+        <div class="bg-white p-4 rounded-xl shadow mb-4">
+            <div class="flex flex-wrap gap-3 items-center">
+                <input v-model="searchQueryInput" type="text" placeholder="Search by name"
+                    class="border rounded-lg px-3 py-2 flex-1" />
+
+                <button @click="handleSearch"
+                    class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Search</button>
+            </div>
+
+            <div class="flex gap-3 mt-4">
+
+                <button @click="addDeviceModalOpen = true"
+                    class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    + Add device
+                </button>
+
+                <button @click=""
+                    class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    <img src="/images/import.png" alt="import" class="w-4 h-4">
+                    Import
+                </button>
+
+                <button @click="deleteModalOpen = true"
+                    class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
+                    <img src="/images/trash.png" alt="trash" class="w-5 h-5">
+                    Delete
+                </button>
+            </div>
         </div>
+
 
         <div v-if="isLoading" class="text-center py-10 text-gray-500">Loading kids...</div>
         <div v-else-if="errorMessage" class="text-center text-red-500 py-10">{{ errorMessage }}</div>
-
         <div v-else class="bg-white rounded-xl shadow overflow-hidden">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100">
@@ -154,7 +202,8 @@ function handleDeleted(kid) {
                         <td class="p-3 text-center">{{ kid.name }}</td>
                         <td class="p-3 text-center">{{ kid.parentName }}</td>
                         <td class="p-3 text-center">{{ kid.placeName }}</td>
-                        <td class="p-3 text-center">{{ kid.lastLat?.toFixed(6) }}, {{ kid.lastLng?.toFixed(6) }}</td>
+                        <td class="p-3 text-center">{{ kid.lastLat?.toFixed(6) }}, {{ kid.lastLng?.toFixed(6) }}
+                        </td>
                         <td class="p-3 text-center">
                             <span class="px-4 py-1 rounded-full text-white text-sm"
                                 :class="kid.status === 'online' ? 'bg-green-500' : 'bg-red-400'">
@@ -186,6 +235,7 @@ function handleDeleted(kid) {
             </div>
         </div>
 
+        <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="handleCreated" />
         <DeleteKidModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
     </div>
 </template>

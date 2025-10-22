@@ -1,5 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    head: {
+      title: "Piyo Backoffice"
+    }
+  },
+
   runtimeConfig: {
     public: {
       apiDomain: process.env.API_DOMAIN || 'http://localhost:3001',

@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddDeviceModal from '~/components/AddDeviceModal.vue'
 import DeleteKidModal from '~/components/DeleteKidModal.vue'
+import DeleteKidMultiModal from '~/components/DeleteKidMultiModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,6 +11,7 @@ const schoolId = route.params.id
 
 // modal
 const deleteModalOpen = ref(false)
+const deleteMultiModalOpen = ref(false)  // สำหรับ multi delete
 const addDeviceModalOpen = ref(false)
 const selectedKid = ref(null)
 
@@ -30,6 +32,39 @@ const errorMessage = ref("")
 function handleCreated() {
     fetchKids()
 }
+
+// ---------------- Selection ----------------
+const selectedKids = ref([])
+
+const allKidsSelected = computed({
+    get: () => paginatedKids.value.length > 0 && paginatedKids.value.every(k => selectedKids.value.includes(k.id)),
+    set: (val) => {
+        const ids = paginatedKids.value.map(k => k.id)
+        if (val) selectedKids.value = Array.from(new Set([...selectedKids.value, ...ids]))
+        else selectedKids.value = selectedKids.value.filter(id => !ids.includes(id))
+    }
+})
+
+function toggleKidSelection(id) {
+    if (selectedKids.value.includes(id)) selectedKids.value = selectedKids.value.filter(i => i !== id)
+    else selectedKids.value.push(id)
+}
+
+// ---------------- Multi Delete ----------------
+const selectedKidsForDelete = computed(() =>
+    kids.value.filter(k => selectedKids.value.includes(k.id))
+)
+
+function confirmDeleteSelected() {
+    if (selectedKids.value.length === 0) return
+    deleteMultiModalOpen.value = true
+}
+
+function handleDeletedMulti() {
+    kids.value = kids.value.filter(k => !selectedKids.value.includes(k.id))
+    selectedKids.value = []
+}
+
 
 // pagination
 const currentPage = ref(1)
@@ -154,10 +189,11 @@ onMounted(fetchKids)
                     Import
                 </button>
 
-                <button @click="deleteModalOpen = true"
+                <!-- multi delete button -->
+                <button @click="confirmDeleteSelected"
                     class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
                     <img src="/images/trash.png" alt="trash" class="w-5 h-5">
-                    Delete
+                    Delete ({{ selectedKids.length }})
                 </button>
             </div>
         </div>
@@ -168,7 +204,7 @@ onMounted(fetchKids)
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="p-3"><input type="checkbox" /></th>
+                        <th class="p-3"><input type="checkbox" v-model="allKidsSelected" /></th>
                         <th class="p-3 text-center">Action</th>
                         <th class="p-3 text-center">Beacon ID</th>
                         <th class="p-3 text-center">Device Name</th>
@@ -180,7 +216,8 @@ onMounted(fetchKids)
                 </thead>
                 <tbody>
                     <tr v-for="kid in paginatedKids" :key="kid.beaconId" class="border-t hover:bg-gray-50">
-                        <td class="p-3"><input type="checkbox" /></td>
+                        <td class="p-3"><input type="checkbox" :checked="selectedKids.includes(kid.id)"
+                                @change="toggleKidSelection(kid.id)" /></td>
 
                         <td class="p-3 text-center">
                             <div class="flex justify-center gap-2">
@@ -237,6 +274,9 @@ onMounted(fetchKids)
         </div>
 
         <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="handleCreated" />
+        
         <DeleteKidModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
+        <DeleteKidMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"
+            @deleted="handleDeletedMulti" />
     </div>
 </template>

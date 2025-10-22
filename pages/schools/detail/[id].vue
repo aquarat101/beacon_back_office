@@ -92,9 +92,11 @@ async function getStudents() {
             serialNumber: kid.beaconId,
             deviceName: kid.name,
             school: school.value.schoolName,
-            location: kid.lastLocation || "-",
+            lat: kid.lastLat || "-",
+            lng: kid.lastLng || "-",
             status: kid.status || "Active"
         }))
+
     } catch (err) {
         console.error("🔥 Error fetching students:", err)
     }
@@ -494,7 +496,7 @@ onMounted(async () => {
                                 <td class="p-3 text-center">{{ student.serialNumber }}</td>
                                 <td class="p-3 text-center">{{ student.deviceName }}</td>
                                 <td class="p-3 text-center">{{ student.school }}</td>
-                                <td class="p-3 text-center">{{ student.location }}</td>
+                                <td class="p-3 text-center">{{ student.lat }} , {{ student.lng }}</td>
 
                                 <td class="p-3 text-center">
                                     <span class="px-4 py-1 rounded-full text-white text-sm"

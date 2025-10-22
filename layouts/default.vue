@@ -16,6 +16,7 @@ onMounted(() => {
         const storedUser = localStorage.getItem('user')
         if (storedUser) {
             user.value = JSON.parse(storedUser)
+            console.log(user.value)
             schoolId.value = user.value.school || ''
         }
 
@@ -44,7 +45,7 @@ const logout = async () => {
     try {
         if (!user.value?.email) return router.push('/auth/login')
 
-        await $fetch(`${config.apiBase}/auth/logout`, {
+        await $fetch(`${config.apiDomain}/auth/logout`, {
             method: 'POST',
             body: { email: user.value.email }
         })
@@ -102,10 +103,12 @@ const logout = async () => {
             <!-- Bottom Profile -->
             <div class="mt-auto border-t p-4 flex items-center gap-2 text-sm text-gray-600">
                 <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">👤</div>
+
                 <div>
-                    <div class="font-medium">{{ user.value?.name || 'Admin' }}</div>
-                    <div class="text-xs">{{ user.value?.email || 'admin@mail.com' }}</div>
+                    <div class="font-medium">{{ user.name || 'Admin' }}</div>
+                    <div class="text-xs">{{ user.email || 'admingmail.com' }}</div>
                 </div>
+                
                 <button class="ml-auto text-gray-500 hover:text-black" @click="logout">
                     <img src="/images/layout/log_out.png" alt="log_out" class="w-6 h-6">
                 </button>

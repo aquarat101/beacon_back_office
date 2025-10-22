@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue"
 import DeleteSchoolUserModal from '~/components/DeleteSchoolUserModal.vue'
+import DeleteSchoolUserMultiModal from '~/components/DeleteSchoolUserMultiModal.vue'
 
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
@@ -68,6 +69,43 @@ function goToPage(page) {
     }
 }
 
+// ---------------- Selection ----------------
+const selectedUsers = ref([])
+
+const allUsersSelected = computed({
+    get: () =>
+        paginatedStaffs.value.length > 0 &&
+        paginatedStaffs.value.every(u => selectedUsers.value.includes(u.id)),
+    set: val => {
+        const ids = paginatedStaffs.value.map(u => u.id)
+        if (val) selectedUsers.value = Array.from(new Set([...selectedUsers.value, ...ids]))
+        else selectedUsers.value = selectedUsers.value.filter(id => !ids.includes(id))
+    }
+})
+
+function toggleUserSelection(id) {
+    if (selectedUsers.value.includes(id))
+        selectedUsers.value = selectedUsers.value.filter(i => i !== id)
+    else selectedUsers.value.push(id)
+}
+
+// ---------------- Multi Delete ----------------
+const deleteMultiModalOpen = ref(false)
+const selectedUsersForDelete = computed(() =>
+    staffs.value.filter(u => selectedUsers.value.includes(u.id))
+)
+
+function confirmDeleteSelected() {
+    if (selectedUsers.value.length === 0) return
+    deleteMultiModalOpen.value = true
+}
+
+function handleDeletedMulti() {
+    staffs.value = staffs.value.filter(u => !selectedUsers.value.includes(u.id))
+    selectedUsers.value = []
+}
+
+
 // ✅ fetch API
 async function fetchSchoolUsers() {
     try {
@@ -126,7 +164,8 @@ onMounted(() => {
                     <input v-model="searchQuery" type="text" placeholder="Search by name"
                         class="border rounded-lg px-3 py-2 flex-1" />
 
-                    <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    <button @click="handleSearch"
+                        class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                         Search
                     </button>
                 </div>
@@ -138,10 +177,10 @@ onMounted(() => {
                         Add School Admin
                     </button>
 
-                    <button @click="isDeleteModalOpen = true"
+                    <button @click="confirmDeleteSelected"
                         class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
                         <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
-                        Delete
+                        Delete ({{ selectedUsers.length }})
                     </button>
                 </div>
             </div>
@@ -151,7 +190,7 @@ onMounted(() => {
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="p-3"><input type="checkbox" /></th>
+                            <th class="p-3"><input type="checkbox" v-model="allUsersSelected" /></th>
                             <th class="p-3 text-center">Action</th>
                             <th class="p-3 text-center">Name</th>
                             <th class="p-3 text-center">Email</th>
@@ -162,7 +201,10 @@ onMounted(() => {
                     </thead>
                     <tbody>
                         <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
-                            <td class="p-3"><input type="checkbox" /></td>
+                            <td class="p-3">
+                                <input type="checkbox" :checked="selectedUsers.includes(staff.id)"
+                                    @change="toggleUserSelection(staff.id)" />
+                            </td>
 
                             <td class="p-3 text-center">
                                 <div class="flex justify-center gap-2">
@@ -231,5 +273,8 @@ onMounted(() => {
         <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
         <DeleteSchoolUserModal v-model="isDeleteModalOpen"
             :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }" @deleted="handleDeleted" />
+        <DeleteSchoolUserMultiModal v-model="deleteMultiModalOpen" :schoolUsers="selectedUsersForDelete"
+            @deleted="handleDeletedMulti" />
+
     </div>
 </template>

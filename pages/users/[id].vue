@@ -12,25 +12,35 @@ const router = useRouter()
 const selectedSchoolUserId = ref("")
 const selectedSchoolUserName = ref("")
 
-// ✅ state ของ modal
+// ✅ modal states
 const isCreateSchoolModalOpen = ref(false)
 const isAddSchoolAdminModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 
-// ✅ staff list (จะมาจาก API)
+// ✅ data state
 const staffs = ref([])
 const isLoading = ref(false)
 const errorMessage = ref("")
+const searchQuery = ref("") // ช่องค้นหาที่พิมพ์อยู่
+const activeSearchQuery = ref("") // ค่าที่จะใช้ filter จริง (หลังจากกด Search)
 
 // ✅ pagination
 const currentPage = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(staffs.value.length / pageSize))
+
+// ✅ ฟิลเตอร์ตามชื่อ (ใช้ activeSearchQuery แทน)
+const filteredStaffs = computed(() => {
+    if (!activeSearchQuery.value.trim()) return staffs.value
+    return staffs.value.filter(staff =>
+        staff.name?.toLowerCase().includes(activeSearchQuery.value.toLowerCase())
+    )
+})
 
 // ✅ pagination slice
+const totalPages = computed(() => Math.ceil(filteredStaffs.value.length / pageSize))
 const paginatedStaffs = computed(() => {
     const start = (currentPage.value - 1) * pageSize
-    return staffs.value.slice(start, start + pageSize)
+    return filteredStaffs.value.slice(start, start + pageSize)
 })
 
 // ✅ สร้างเลขหน้า
@@ -58,7 +68,7 @@ function goToPage(page) {
     }
 }
 
-// ✅ ฟังก์ชันดึงข้อมูลจาก API
+// ✅ fetch API
 async function fetchSchoolUsers() {
     try {
         isLoading.value = true
@@ -66,7 +76,6 @@ async function fetchSchoolUsers() {
         if (!res.ok) throw new Error("Failed to fetch school users")
 
         const data = await res.json()
-        // สมมติ backend ส่งเป็น { data: [...] }
         staffs.value = data.data || []
     } catch (err) {
         console.error("❌ Fetch error:", err)
@@ -76,24 +85,22 @@ async function fetchSchoolUsers() {
     }
 }
 
-// ✅ lifecycle
-onMounted(() => {
-    fetchSchoolUsers()
-})
-
-// ✅ modal events
-function handleCreated(data) {
-    console.log("🎉 School created:", data)
-    fetchSchoolUsers() // refresh list
+// ✅ เมื่อกดปุ่ม Search
+function handleSearch() {
+    activeSearchQuery.value = searchQuery.value.trim()
+    currentPage.value = 1
 }
 
-function handleAdded(data) {
-    console.log("🎉 School added:", data)
+// ✅ modal handlers
+function handleCreated() {
+    fetchSchoolUsers()
+}
+
+function handleAdded() {
     fetchSchoolUsers()
 }
 
 function handleDeleted() {
-    console.log("Deleted")
     fetchSchoolUsers()
 }
 
@@ -101,37 +108,25 @@ function confirmDelete(staff) {
     selectedSchoolUserId.value = staff.id
     selectedSchoolUserName.value = staff.name
     isDeleteModalOpen.value = true
-    console.log(selectedSchoolUserId.value, selectedSchoolUserName.value)
 }
 
+onMounted(() => {
+    fetchSchoolUsers()
+})
 </script>
-
 
 <template>
     <div>
         <div class="p-6">
-            <!-- Page Title -->
             <h1 class="text-4xl font-bold mb-6 ml-2 mt-2">Users</h1>
 
             <!-- Search & Filters -->
             <div class="bg-white p-4 rounded-xl shadow mb-4">
                 <div class="flex flex-wrap gap-3 items-center">
-                    <input type="text" placeholder="Search" class="border rounded-lg px-3 py-2 flex-1" />
+                    <input v-model="searchQuery" type="text" placeholder="Search by name"
+                        class="border rounded-lg px-3 py-2 flex-1" />
 
-                    <select class="border rounded-lg px-3 py-2 pr-20">
-                        <option>Role</option>
-                        <option>Admin</option>
-                        <option>Staff</option>
-                        <option>User</option>
-                    </select>
-
-                    <select class="border rounded-lg px-3 py-2 pr-16">
-                        <option>Status</option>
-                        <option>Active</option>
-                        <option>Inactive</option>
-                    </select>
-
-                    <button class="bg-color-main2 text-white px-4 py-2 rounded-lg">
+                    <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                         Search
                     </button>
                 </div>
@@ -139,13 +134,13 @@ function confirmDelete(staff) {
                 <div class="flex gap-3 mt-4">
                     <button @click="isAddSchoolAdminModalOpen = true"
                         class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
-                        <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4">
+                        <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4" />
                         Add School Admin
                     </button>
 
                     <button @click="isDeleteModalOpen = true"
                         class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
-                        <img src="/images/trash.png" alt="trash" class="w-5 h-5">
+                        <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
                         Delete
                     </button>
                 </div>
@@ -169,7 +164,6 @@ function confirmDelete(staff) {
                         <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
                             <td class="p-3"><input type="checkbox" /></td>
 
-                            <!-- Action buttons -->
                             <td class="p-3 text-center">
                                 <div class="flex justify-center gap-2">
                                     <button class="bg-color-main3 text-white px-2 py-1 rounded"
@@ -199,8 +193,7 @@ function confirmDelete(staff) {
                                     ? 'bg-green-500 text-white'
                                     : staff.status === 'Pending'
                                         ? 'bg-color-main-yellow text-black'
-                                        : 'bg-color-main-red text-white '
-                                    ">
+                                        : 'bg-color-main-red text-white'">
                                     {{ staff.status }}
                                 </span>
                             </td>
@@ -221,8 +214,7 @@ function confirmDelete(staff) {
                                 ? 'bg-blue-500 text-white'
                                 : page === '...'
                                     ? 'bg-transparent text-gray-500 cursor-default'
-                                    : 'bg-white text-color-main2'
-                                " @click="goToPage(page)">
+                                    : 'bg-white text-color-main2'" @click="goToPage(page)">
                             {{ page }}
                         </button>
                     </div>
@@ -232,7 +224,6 @@ function confirmDelete(staff) {
                         Next &gt;
                     </button>
                 </div>
-
             </div>
         </div>
 

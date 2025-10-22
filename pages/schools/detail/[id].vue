@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue"
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue"
 import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
+import DeleteSchoolUserMultiModal from '~/components/DeleteSchoolUserMultiModal.vue'
 
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
@@ -102,6 +103,64 @@ async function getStudents() {
     }
 }
 
+// ---------------- Selection ----------------
+const selectedStaffs = ref([])
+const selectedStudents = ref([])
+
+// ---------------- Selected Users for Multi Delete ----------------
+const selectedUsers = computed(() => {
+    if (currentTab.value === 'staff') {
+        return staffs.value.filter(s => selectedStaffs.value.includes(s.id))
+    } else if (currentTab.value === 'students') {
+        return students.value.filter(s => selectedStudents.value.includes(s.id))
+    }
+    return []
+})
+
+// ---------------- Checkbox Computed ----------------
+const allStaffSelected = computed({
+    get: () => paginatedStaffs.value.length > 0 && paginatedStaffs.value.every(s => selectedStaffs.value.includes(s.id)),
+    set: (val) => {
+        const ids = paginatedStaffs.value.map(s => s.id)
+        if (val) selectedStaffs.value = Array.from(new Set([...selectedStaffs.value, ...ids]))
+        else selectedStaffs.value = selectedStaffs.value.filter(id => !ids.includes(id))
+    }
+})
+
+const allStudentSelected = computed({
+    get: () => paginatedStudents.value.length > 0 && paginatedStudents.value.every(s => selectedStudents.value.includes(s.id)),
+    set: (val) => {
+        const ids = paginatedStudents.value.map(s => s.id)
+        if (val) selectedStudents.value = Array.from(new Set([...selectedStudents.value, ...ids]))
+        else selectedStudents.value = selectedStudents.value.filter(id => !ids.includes(id))
+    }
+})
+
+function toggleStaffSelection(id) {
+    if (selectedStaffs.value.includes(id)) selectedStaffs.value = selectedStaffs.value.filter(i => i !== id)
+    else selectedStaffs.value.push(id)
+}
+
+function toggleStudentSelection(id) {
+    if (selectedStudents.value.includes(id)) selectedStudents.value = selectedStudents.value.filter(i => i !== id)
+    else selectedStudents.value.push(id)
+}
+
+// ---------------- Delete ----------------
+function confirmDeleteSelected() {
+    if ((currentTab.value === 'staff' && selectedStaffs.value.length === 0) ||
+        (currentTab.value === 'students' && selectedStudents.value.length === 0)) return
+    isDeleteModalOpen.value = true
+}
+
+function handleDeleted() {
+    if (currentTab.value === 'staff') selectedStaffs.value = []
+    if (currentTab.value === 'students') selectedStudents.value = []
+    getSchoolStaffs()
+    getStudents()
+}
+
+
 // ---------------- Filters ----------------
 const filteredStaffs = computed(() => {
     return staffs.value.filter(s => {
@@ -185,7 +244,6 @@ function handleSearchStudent() {
 // ---------------- Handlers ----------------
 function handleCreated(data) { console.log("🎉 School created:", data) }
 function handleAdded(data) { console.log("🎉 Admin added:", data) }
-function handleDeleted() { console.log("Deleted") }
 function handleDelete() { console.log('Deleted school:', school.value); router.push('/schools') }
 
 // ---------------- Load ----------------
@@ -314,11 +372,12 @@ onMounted(async () => {
                             Add School Admin
                         </button>
 
-                        <button @click="isDeleteModalOpen = true"
+                        <button @click="confirmDeleteSelected"
                             class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
                             <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
-                            Delete
+                            Delete ({{ currentTab === 'staff' ? selectedStaffs.length : selectedStudents.length }})
                         </button>
+
                     </div>
                 </div>
 
@@ -328,7 +387,7 @@ onMounted(async () => {
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="p-3"><input type="checkbox" /></th>
+                                <th class="p-3"><input type="checkbox" v-model="allStaffSelected" /></th>
                                 <th class="p-3 text-center">Action</th>
                                 <th class="p-3 text-center">Name</th>
                                 <th class="p-3 text-center">Email</th>
@@ -339,7 +398,8 @@ onMounted(async () => {
                         </thead>
                         <tbody>
                             <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
-                                <td class="p-3"><input type="checkbox" /></td>
+                                <td class="p-3"><input type="checkbox" :checked="selectedStaffs.includes(staff.id)"
+                                        @change="toggleStaffSelection(staff.id)" /></td>
 
                                 <!-- Action buttons -->
                                 <td class="p-3 text-center">
@@ -448,11 +508,12 @@ onMounted(async () => {
                     </div>
 
                     <div class="flex gap-3 mt-4">
-                        <button @click="isDeleteModalOpen = true"
+                        <button @click="confirmDeleteSelected"
                             class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
                             <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
-                            Delete
+                            Delete ({{ currentTab === 'staff' ? selectedStaffs.length : selectedStudents.length }})
                         </button>
+
                     </div>
                 </div>
 
@@ -462,7 +523,7 @@ onMounted(async () => {
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="p-3"><input type="checkbox" /></th>
+                                <th class="p-3"><input type="checkbox" v-model="allStudentSelected" /></th>
                                 <th class="p-3 text-center">Action</th>
                                 <th class="p-3 text-center">Serial Number</th>
                                 <th class="p-3 text-center">Device Name</th>
@@ -471,10 +532,12 @@ onMounted(async () => {
                                 <th class="p-3 text-center">Status</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             <tr v-for="student in paginatedStudents" :key="student.id"
                                 class="border-t hover:bg-gray-50">
-                                <td class="p-3"><input type="checkbox" /></td>
+                                <td class="p-3"><input type="checkbox" :checked="selectedStudents.includes(student.id)"
+                                        @change="toggleStudentSelection(student.id)" /></td>
 
                                 <!-- Action buttons -->
                                 <td class="p-3 text-center">
@@ -496,7 +559,7 @@ onMounted(async () => {
                                 <td class="p-3 text-center">{{ student.serialNumber }}</td>
                                 <td class="p-3 text-center">{{ student.deviceName }}</td>
                                 <td class="p-3 text-center">{{ student.school }}</td>
-                                <td class="p-3 text-center">{{ student.lat }} , {{ student.lng }}</td>
+                                <td class="p-3 text-center">{{ student.lat || "-" }} | {{ student.lng || "-" }}</td>
 
                                 <td class="p-3 text-center">
                                     <span class="px-4 py-1 rounded-full text-white text-sm"
@@ -543,5 +606,7 @@ onMounted(async () => {
 
         <!-- Delete modal -->
         <DeleteSchoolModal v-model="deleteModalOpen" :school="school" @deleted="handleDelete" />
+        <DeleteSchoolUserMultiModal v-model="isDeleteModalOpen" :schoolUsers="selectedUsers" @deleted="handleDeleted" />
+
     </div>
 </template>

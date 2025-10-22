@@ -191,7 +191,7 @@ function confirmDelete(school) {
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="p-3"><input type="checkbox" /></th>
+                        <!-- <th class="p-3"><input type="checkbox" /></th> -->
                         <th class="p-3 text-center">Action</th>
                         <th class="p-3 text-center">School ID</th>
                         <th class="p-3 text-center">School Name</th>
@@ -203,7 +203,7 @@ function confirmDelete(school) {
                 </thead>
                 <tbody>
                     <tr v-for="school in paginatedSchools" :key="school.id" class="border-t hover:bg-gray-50">
-                        <td class="p-3"><input type="checkbox" /></td>
+                        <!-- <td class="p-3"><input type="checkbox" /></td> -->
                         <td class="p-3 text-center">
                             <div class="flex justify-center gap-2">
                                 <button class="bg-color-main3 text-white px-2 py-1 rounded"

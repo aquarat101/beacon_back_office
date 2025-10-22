@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddDeviceModal from '~/components/AddDeviceModal.vue'
 import DeleteKidModal from '~/components/DeleteKidModal.vue'
@@ -36,15 +36,12 @@ const currentPage = ref(1)
 const pageSize = 10
 const totalPages = computed(() => Math.ceil(filteredKids.value.length / pageSize))
 
-// 🔹 filter kids by search
+// ✅ filter kids by *name only*
 const filteredKids = computed(() => {
     if (!activeSearchQuery.value.trim()) return kids.value
     const q = activeSearchQuery.value.toLowerCase()
     return kids.value.filter(kid =>
-        kid.name?.toLowerCase().includes(q) ||
-        kid.beaconId?.toLowerCase().includes(q) ||
-        kid.parentName?.toLowerCase().includes(q) ||
-        kid.placeName?.toLowerCase().includes(q)
+        kid.name?.toLowerCase().startsWith(q)
     )
 })
 
@@ -132,7 +129,6 @@ function handleDeleted(kid) {
 onMounted(fetchKids)
 </script>
 
-
 <template>
     <div class="p-6">
         <h1 class="text-4xl font-bold mb-6 ml-2 mt-2">Kids</h1>
@@ -147,13 +143,12 @@ onMounted(fetchKids)
             </div>
 
             <div class="flex gap-3 mt-4">
-
                 <button @click="addDeviceModalOpen = true"
                     class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                     + Add device
                 </button>
 
-                <button @click=""
+                <button
                     class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                     <img src="/images/import.png" alt="import" class="w-4 h-4">
                     Import
@@ -167,13 +162,13 @@ onMounted(fetchKids)
             </div>
         </div>
 
-
         <div v-if="isLoading" class="text-center py-10 text-gray-500">Loading kids...</div>
         <div v-else-if="errorMessage" class="text-center text-red-500 py-10">{{ errorMessage }}</div>
         <div v-else class="bg-white rounded-xl shadow overflow-hidden">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-100">
                     <tr>
+                        <th class="p-3"><input type="checkbox" /></th>
                         <th class="p-3 text-center">Action</th>
                         <th class="p-3 text-center">Beacon ID</th>
                         <th class="p-3 text-center">Device Name</th>
@@ -185,6 +180,8 @@ onMounted(fetchKids)
                 </thead>
                 <tbody>
                     <tr v-for="kid in paginatedKids" :key="kid.beaconId" class="border-t hover:bg-gray-50">
+                        <td class="p-3"><input type="checkbox" /></td>
+
                         <td class="p-3 text-center">
                             <div class="flex justify-center gap-2">
                                 <button class="bg-color-main3 text-white px-2 py-1 rounded"
@@ -202,8 +199,10 @@ onMounted(fetchKids)
                         <td class="p-3 text-center">{{ kid.name }}</td>
                         <td class="p-3 text-center">{{ kid.parentName }}</td>
                         <td class="p-3 text-center">{{ kid.placeName }}</td>
-                        <td class="p-3 text-center">{{ kid.lastLat?.toFixed(6) }}, {{ kid.lastLng?.toFixed(6) }}
+                        <td class="p-3 text-center">
+                            {{ kid.lastLat?.toFixed(6) || "-" }} | {{ kid.lastLng?.toFixed(6) || "-" }}
                         </td>
+
                         <td class="p-3 text-center">
                             <span class="px-4 py-1 rounded-full text-white text-sm"
                                 :class="kid.status === 'online' ? 'bg-green-500' : 'bg-red-400'">
@@ -220,6 +219,7 @@ onMounted(fetchKids)
                     @click="goToPage(currentPage - 1)">
                     &lt; Previous
                 </button>
+
                 <div class="flex gap-2 px-8">
                     <button v-for="page in pageNumbers" :key="page + '-btn'" class="px-3 py-1 rounded"
                         :disabled="page === '...'"
@@ -228,6 +228,7 @@ onMounted(fetchKids)
                         {{ page }}
                     </button>
                 </div>
+
                 <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === totalPages"
                     @click="goToPage(currentPage + 1)">
                     Next &gt;

@@ -126,7 +126,7 @@ const coordinates = [
 import Cookies from 'js-cookie'
 // อ่านค่า
 const schoolName = Cookies.get('schoolName')
-console.log('schoolName from cookie:', schoolName)
+// console.log('schoolName from cookie:', schoolName)
 
 const currentPage = ref(1)
 const pageSize = 10
@@ -389,19 +389,19 @@ const peakHour = computed(() => {
                    @click="sortTable('date')"
                    :style="{paddingLeft: '12px', cursor: 'pointer' }"
                  >
-                   Date {{ sortColumn === 'date' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }}
+                   <!-- Date {{ sortColumn === 'date' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }} -->
                  </th>
                  <th @click="sortTable('time')" :style="{ cursor: 'pointer' }">
-                   Time {{ sortColumn === 'time' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }}
+                   <!-- Time {{ sortColumn === 'time' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }} -->
                  </th>
                  <th @click="sortTable('name')" :style="{ cursor: 'pointer' }">
-                   Name {{ sortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }}
+                   <!-- Name {{ sortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }} -->
                  </th>
                  <th
                    @click="sortTable('location_name')"
                    :style="{ cursor: 'pointer' }"
                  >
-                   Location Name {{ sortColumn === 'location_name' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }}
+                   <!-- Location Name {{ sortColumn === 'location_name' ? (sortDirection === 'asc' ? '▲' : '▼') : '' }} -->
                  </th>
                </tr>
              </thead>

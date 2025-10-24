@@ -7,7 +7,7 @@ const router = useRouter()
 const { public: config } = useRuntimeConfig()
 
 const user = ref({})
-const schoolId = ref('')
+const school = ref('')
 const menuItems = ref([])
 
 onMounted(() => {
@@ -16,19 +16,27 @@ onMounted(() => {
         const storedUser = localStorage.getItem('user')
         if (storedUser) {
             user.value = JSON.parse(storedUser)
-            console.log(user.value)
-            schoolId.value = user.value.school || ''
+            school.value = user.value.school || ''
+            // console.log("User : ", user.value.school, user.value.role)
         }
 
-        if (schoolId.value) {
+        // Super admin
+        // School admin
+        // School staff
+
+        if (school.value && (user.value.role === "school_admin" || user.value.role === "school_staff")) {
+            console.log("User school_admin or staff : ", user.value.school, " | ", user.value.role)
+
             menuItems.value = [
-                { name: 'Dashboard', path: `/dashboard/${schoolId.value}`, img: '/images/layout/dashboard.png' },
-                { name: 'Schools', path: `/schools/${schoolId.value}`, img: '/images/layout/school.png' },
-                { name: 'Devices', path: `/devices/${schoolId.value}`, img: '/images/layout/device.png' },
-                { name: 'Users', path: `/users/${schoolId.value}`, img: '/images/layout/user.png' },
-                { name: 'System Log', path: `/system_log/${schoolId.value}`, img: '/images/layout/system_log.png' }
+                { name: 'Dashboard', path: `/dashboard/${school.value}`, img: '/images/layout/dashboard.png' },
+                { name: 'Schools', path: `/schools/${school.value}`, img: '/images/layout/school.png' },
+                { name: 'Devices', path: `/devices/${school.value}`, img: '/images/layout/device.png' },
+                { name: 'Users', path: `/users/${school.value}`, img: '/images/layout/user.png' },
+                { name: 'System Log', path: `/system_log/${school.value}`, img: '/images/layout/system_log.png' }
             ]
-        } else {
+        } else { // -- Super Admin Role --
+            console.log("User super_admin : ", user.value.school, " | ", user.value.role)
+
             menuItems.value = [
                 { name: 'Dashboard', path: '/dashboard', img: '/images/layout/dashboard.png' },
                 { name: 'Schools', path: '/schools', img: '/images/layout/school.png' },
@@ -50,19 +58,22 @@ const logout = async () => {
             body: { email: user.value.email }
         })
 
-        // ล้าง localStorage
-        if (process.client) {
-            localStorage.removeItem('token')
-            localStorage.removeItem('user')
-            localStorage.removeItem('schoolName')
-            localStorage.removeItem('schoolId')
-        }
+        // ✅ เคลียร์ข้อมูลทั้งหมดทันที
+        localStorage.clear()
+        user.value = {}
+        school.value = ''
+        menuItems.value = []
 
+        console.log("✅ Cleared storage and logged out")
+        // console.log(user.value)
+
+        // ✅ redirect หลังจากเคลียร์เสร็จ
         router.push('/auth/login')
     } catch (err) {
         console.error('Logout failed:', err)
     }
 }
+
 </script>
 
 
@@ -108,7 +119,7 @@ const logout = async () => {
                     <div class="font-medium">{{ user.name || 'Admin' }}</div>
                     <div class="text-xs">{{ user.email || 'admingmail.com' }}</div>
                 </div>
-                
+
                 <button class="ml-auto text-gray-500 hover:text-black" @click="logout">
                     <img src="/images/layout/log_out.png" alt="log_out" class="w-6 h-6">
                 </button>

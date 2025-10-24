@@ -8,6 +8,9 @@ definePageMeta({
 
 const { public: config } = useRuntimeConfig()
 
+const user = ref({})
+const schoolId = ref('')
+
 const email = ref('')
 const password = ref('')
 const isPasswordVisible = ref(false)
@@ -30,8 +33,6 @@ const handleSubmit = async () => {
         })
 
         if (error.value) throw error.value.data?.message || 'Login failed'
-        
-        console.log(data.value)
 
         // 🔹 เก็บลง localStorage
         localStorage.setItem('token', data.value.token)
@@ -43,10 +44,53 @@ const handleSubmit = async () => {
         // localStorage.setItem('user', JSON.stringify(data.value.user))
 
         modalMessage.value = '✅ Login successfully!!!'
-        setTimeout(() => {
+        // setTimeout(() => {
+        //     showModal.value = false
+        //     router.push(`/dashboard/${data.value.user.school}`)
+        // }, 1500)
+
+
+        console.log("DATA : ", data.value)
+        console.log("DATA ROLE : ", data.value.user.role)
+
+        if (data.value.user.role === "school_admin" || data.value.user.role === "school_staff") {
+            setTimeout(() => {
+                showModal.value = false
+                router.push(`/dashboard/${data.value.user.school}`)
+            }, 1500)
+
+        } else if (data.value.user.role === "super_admin") { // -- Super Admin Role --
+            setTimeout(() => {
+                showModal.value = false
+                router.push(`/dashboard/`)
+            }, 1500)
+
+        } else {
+            alert("Can't access with user role")
+            console.log("Error, user role")
             showModal.value = false
-            router.push(`/dashboard/${data.value.user.school}`)
-        }, 1500)
+        }
+
+        // if (process.client) {
+        //     const storedUser = localStorage.getItem('user')
+        //     if (storedUser) {
+        //         user.value = JSON.parse(storedUser)
+        //     }
+
+        //     if (user.role === "school_admin" || user.role === "school_staff") {
+        //         setTimeout(() => {
+        //             showModal.value = false
+        //             router.push(`/dashboard/${data.value.user.school}`)
+        //         }, 1500)
+
+        //     } else { // -- Super Admin Role --
+        //         setTimeout(() => {
+        //             showModal.value = false
+        //             router.push(`/dashboard/`)
+        //         }, 1500)
+
+        //     }
+        // }
     } catch (err) {
         showModal.value = false
         errorMessage.value = err.message || 'Server error'

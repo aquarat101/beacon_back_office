@@ -5,6 +5,7 @@ import AddDeviceModal from '~/components/AddDeviceModal.vue'
 import DeleteKidModal from '~/components/DeleteKidModal.vue'
 import DeleteKidMultiModal from '~/components/DeleteKidMultiModal.vue'
 
+const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 const schoolId = route.params.id
@@ -28,6 +29,44 @@ function handleSearch() {
 const kids = ref([])
 const isLoading = ref(false)
 const errorMessage = ref("")
+
+// fetch kids
+async function fetchKids() {
+    try {
+        const res = await fetch(`${config.apiDomain}/schools/getAllStudent/${schoolId}`)
+        const json = await res.json()
+        if (!json.success) return console.warn("No students found")
+        const studentRefs = json.data
+        if (studentRefs.length === 0) {
+            kids.value = []
+            return
+        }
+
+        const kidIds = studentRefs.map(s => s.kidId)
+        const kidsRes = await fetch(`${config.apiDomain}/kids/getMultiKid`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: kidIds })
+        })
+        const kidsJson = await kidsRes.json()
+        if (!kidsJson.success) return console.warn("No kids data found")
+
+        kids.value = kidsJson.data.map(kid => ({
+            id: kid.id,
+            beaconId: kid.beaconId,
+            name: kid.name,
+            parentName: kid.parentName || '-',
+            placeName: kid.placeName || '-',
+            lastLat: kid.lastLat || null,
+            lastLng: kid.lastLng || null,
+            status: kid.status || 'Inactive'
+        }))
+
+
+    } catch (err) {
+        console.error("🔥 Error fetching students:", err)
+    }
+}
 
 function handleCreated() {
     fetchKids()
@@ -109,48 +148,6 @@ function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) currentPage.value = page
 }
 
-// fetch kids
-async function fetchKids() {
-    try {
-        isLoading.value = true
-        const { public: config } = useRuntimeConfig()
-        const res = await fetch(`${config.apiDomain}/kids/getAllKids`)
-        if (!res.ok) throw new Error("Failed to fetch kids")
-        const data = await res.json()
-        const rawKids = data.kids || []
-
-        const kidsWithExtraData = await Promise.all(
-            rawKids.map(async kid => {
-                let placeName = "Unknown place"
-                let parentName = "Unknown parent"
-
-                try {
-                    const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${kid.userId}/${kid.lastZoneId}`)
-                    if (placeRes.ok) {
-                        const placeData = await placeRes.json()
-                        placeName = placeData?.place?.name || placeData?.name || "Unknown place"
-                    }
-                } catch { }
-
-                try {
-                    const userRes = await fetch(`${config.apiDomain}/users/get/${kid.userId}`)
-                    if (userRes.ok) {
-                        const userData = await userRes.json()
-                        parentName = userData?.user?.firstName || userData?.firstName || "Unknown parent"
-                    }
-                } catch { }
-
-                return { ...kid, placeName, parentName }
-            })
-        )
-
-        kids.value = kidsWithExtraData
-    } catch (err) {
-        errorMessage.value = err.message
-    } finally {
-        isLoading.value = false
-    }
-}
 
 function openDeleteModal(kid) {
     selectedKid.value = kid
@@ -274,7 +271,7 @@ onMounted(fetchKids)
         </div>
 
         <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="handleCreated" />
-        
+
         <DeleteKidModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
         <DeleteKidMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"
             @deleted="handleDeletedMulti" />

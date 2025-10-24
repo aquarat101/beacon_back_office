@@ -14,27 +14,38 @@ onMounted(() => {
     // ✅ ตรวจสอบ client ก่อนเข้าถึง localStorage
     if (process.client) {
         const storedUser = localStorage.getItem('user')
+        const schoolId = localStorage.getItem('schoolId')
+
         if (storedUser) {
             user.value = JSON.parse(storedUser)
             school.value = user.value.school || ''
-            // console.log("User : ", user.value.school, user.value.role)
+            console.log("User : ", user.value)
+            console.log("School Id : ", schoolId)
         }
 
-        // Super admin
-        // School admin
-        // School staff
-
-        if (school.value && (user.value.role === "school_admin" || user.value.role === "school_staff")) {
-            console.log("User school_admin or staff : ", user.value.school, " | ", user.value.role)
+        if (school.value && user.value.role === "school_admin") {
+            console.log("User school_admin : ", user.value.school, " | ", user.value.role)
 
             menuItems.value = [
-                { name: 'Dashboard', path: `/dashboard/${school.value}`, img: '/images/layout/dashboard.png' },
-                { name: 'Schools', path: `/schools/${school.value}`, img: '/images/layout/school.png' },
-                { name: 'Devices', path: `/devices/${school.value}`, img: '/images/layout/device.png' },
-                { name: 'Users', path: `/users/${school.value}`, img: '/images/layout/user.png' },
-                { name: 'System Log', path: `/system_log/${school.value}`, img: '/images/layout/system_log.png' }
+                { name: 'Dashboard', path: `/dashboard/${schoolId}`, img: '/images/layout/dashboard.png' },
+                { name: 'Schools', path: `/schools/${schoolId}`, img: '/images/layout/school.png' },
+                { name: 'Devices', path: `/devices/${schoolId}`, img: '/images/layout/device.png' },
+                { name: 'Users', path: `/users/${schoolId}`, img: '/images/layout/user.png' },
+                { name: 'System Log', path: `/system_log/${schoolId}`, img: '/images/layout/system_log.png' }
             ]
-        } else { // -- Super Admin Role --
+        }
+
+        else if (school.value && user.value.role === "school_staff") {
+            console.log("User school_staff : ", user.value.school, " | ", user.value.role)
+
+            menuItems.value = [
+                { name: 'Dashboard', path: `/dashboard/${schoolId}`, img: '/images/layout/dashboard.png' },
+                { name: 'Devices', path: `/devices/${schoolId}`, img: '/images/layout/device.png' },
+                { name: 'Users', path: `/users/${schoolId}`, img: '/images/layout/user.png' },
+            ]
+        }
+
+        else { // -- Super Admin Role --
             console.log("User super_admin : ", user.value.school, " | ", user.value.role)
 
             menuItems.value = [
@@ -65,7 +76,6 @@ const logout = async () => {
         menuItems.value = []
 
         console.log("✅ Cleared storage and logged out")
-        // console.log(user.value)
 
         // ✅ redirect หลังจากเคลียร์เสร็จ
         router.push('/auth/login')

@@ -70,7 +70,7 @@ async function getSchoolStaffs() {
 
 async function getStudents() {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/${schoolId}/getAllStudent`)
+        const res = await fetch(`${config.apiDomain}/schools/getAllStudent/${schoolId}`)
         const json = await res.json()
         if (!json.success) return console.warn("No students found")
         const studentRefs = json.data

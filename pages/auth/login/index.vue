@@ -44,11 +44,27 @@ const handleSubmit = async () => {
         // localStorage.setItem('user', JSON.stringify(data.value.user))
 
         modalMessage.value = '✅ Login successfully!!!'
-        // setTimeout(() => {
-        //     showModal.value = false
-        //     router.push(`/dashboard/${data.value.user.school}`)
-        // }, 1500)
 
+        
+        let resolvedSchoolId = ''
+        console.log("School name : ", data.value.user.school)
+        if (data.value.user.school) {
+            try {
+                const res = await fetch(`${config.apiDomain}/schools/getSchoolIdByName/${data.value.user.school}`)
+                if (res.ok) {
+                    const schoolData = await res.json()
+                    console.log("School data : ", schoolData)
+                    resolvedSchoolId = schoolData.schoolId
+                    localStorage.setItem('schoolId', resolvedSchoolId)
+                } else {
+                    console.warn('❗ School not found from name:', data.value.user.school)
+                    localStorage.setItem('schoolId', '')
+                }
+            } catch (err) {
+                console.error('Error fetching schoolId:', err)
+                localStorage.setItem('schoolId', '')
+            }
+        }
 
         console.log("DATA : ", data.value)
         console.log("DATA ROLE : ", data.value.user.role)
@@ -56,7 +72,7 @@ const handleSubmit = async () => {
         if (data.value.user.role === "school_admin" || data.value.user.role === "school_staff") {
             setTimeout(() => {
                 showModal.value = false
-                router.push(`/dashboard/${data.value.user.school}`)
+                router.push(`/dashboard/${resolvedSchoolId}`)
             }, 1500)
 
         } else if (data.value.user.role === "super_admin") { // -- Super Admin Role --

@@ -9,6 +9,7 @@ import DeleteSchoolUserMultiModal from '~/components/DeleteSchoolUserMultiModal.
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
+const schoolId = route.params.id
 
 const selectedSchoolUserId = ref("")
 const selectedSchoolUserName = ref("")
@@ -110,7 +111,7 @@ function handleDeletedMulti() {
 async function fetchSchoolUsers() {
     try {
         isLoading.value = true
-        const res = await fetch(`${config.apiDomain}/schools/getAllUser`)
+        const res = await fetch(`${config.apiDomain}/schools/getAllUserById/${schoolId}`)
         if (!res.ok) throw new Error("Failed to fetch school users")
 
         const data = await res.json()

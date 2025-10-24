@@ -2,11 +2,12 @@
 import { ref, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
+const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
-const { public: config } = useRuntimeConfig()
 
 const userId = route.params.id
+
 const form = ref({
     id: "",
     name: "",
@@ -90,6 +91,7 @@ const handleSave = async () => {
 
         if (response.success) {
             alert("✅ Updated successfully!")
+            router.push(`/users/detail/${userId}`)
         } else {
             alert("❌ Failed to update user")
         }

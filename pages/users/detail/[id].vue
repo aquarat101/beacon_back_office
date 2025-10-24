@@ -46,7 +46,15 @@ onMounted(fetchUser)
         <div v-else-if="user" class="bg-white p-6 rounded-xl shadow relative">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-xl font-bold">{{ user.name }}</h2>
+                    <div class="flex gap-3 mb-1">
+                        <h2 class="text-xl font-bold">{{ user.name }}</h2>
+
+                        <span class="text-sm text-white px-2 py-1 rounded-full"
+                            :class="user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'">
+                            {{ user.status }}
+                        </span>
+                    </div>
+
                     <div class="text-sm text-gray-500 mt-1">user ID: {{ user.id }}</div>
                 </div>
 

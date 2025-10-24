@@ -53,6 +53,7 @@ async function fetchKids() {
 
         kids.value = kidsJson.data.map(kid => ({
             id: kid.id,
+            userId: kid.userId,
             beaconId: kid.beaconId,
             name: kid.name,
             parentName: kid.parentName || '-',

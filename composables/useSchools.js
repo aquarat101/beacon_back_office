@@ -26,5 +26,5 @@ export function useSchools(apiDomain) {
     }
   }
 
-  return { schools, isSchoolsLoading, fetchSchools };
+  return { schools, isLoading, fetchSchools };
 }

@@ -5,9 +5,5 @@
     </NuxtLayout>
   </div>
 </template>
-
 <style>
-
-
-
 </style>

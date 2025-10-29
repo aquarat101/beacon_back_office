@@ -1,127 +1,149 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuth } from "~/composables/useAuth";
+import { ROLES } from "~/constants/role";
 
-definePageMeta({
-  layout: false,
-});
+definePageMeta({ layout: false });
 
-const { public: config } = useRuntimeConfig();
-
-const user = ref({});
-const schoolId = ref("");
+const router = useRouter();
+const { login, user } = useAuth();
 
 const email = ref("");
 const password = ref("");
 const isPasswordVisible = ref(false);
 const loading = ref(false);
+const errorMessage = ref("");
 const showModal = ref(false);
 const modalMessage = ref("");
-const errorMessage = ref("");
-const router = useRouter();
 
 const handleSubmit = async () => {
   errorMessage.value = "";
+  loading.value = true;
+  showModal.value = true;
+  modalMessage.value = "Logging in...";
+
   try {
-    showModal.value = true;
-    modalMessage.value = "Logging in...";
-    loading.value = true;
+    await login(email.value, password.value);
 
-    const { data, error } = await useFetch(`${config.apiDomain}/auth/login`, {
-      method: "POST",
-      body: { email: email.value, password: password.value },
-    });
-
-    if (error.value) throw error.value.data?.message || "Login failed";
-
-    // 🔹 เก็บลง localStorage
-    localStorage.setItem("token", data.value.token);
-    localStorage.setItem("user", JSON.stringify(data.value.user));
-    localStorage.setItem("schoolId", data.value.user.school || "");
-    localStorage.setItem("schoolName", data.value.user.schoolName || "");
-
-    // localStorage.setItem('token', data.value.token)
-    // localStorage.setItem('user', JSON.stringify(data.value.user))
-
-    modalMessage.value = "✅ Login successfully!!!";
-
-    let resolvedSchoolId = "";
-    console.log("School name : ", data.value.user.school);
-    if (data.value.user.school) {
-      try {
-        const res = await fetch(
-          `${config.apiDomain}/schools/getSchoolIdByName/${data.value.user.school}`
-        );
-        if (res.ok) {
-          const schoolData = await res.json();
-          console.log("School data : ", schoolData);
-          resolvedSchoolId = schoolData.schoolId;
-          localStorage.setItem("schoolId", resolvedSchoolId);
-        } else {
-          console.warn(
-            "❗ School not found from name:",
-            data.value.user.school
-          );
-          localStorage.setItem("schoolId", "");
-        }
-      } catch (err) {
-        console.error("Error fetching schoolId:", err);
-        localStorage.setItem("schoolId", "");
-      }
-    }
-
-    console.log("DATA : ", data.value);
-    console.log("DATA ROLE : ", data.value.user.role);
-
-    if (
-      data.value.user.role === "school_admin" ||
-      data.value.user.role === "school_staff"
-    ) {
-      setTimeout(() => {
-        showModal.value = false;
-        router.push(`/dashboard/${resolvedSchoolId}`);
-      }, 1500);
-    } else if (data.value.user.role === "super_admin") {
-      // -- Super Admin Role --
-      setTimeout(() => {
-        showModal.value = false;
-        router.push(`/dashboard/`);
-      }, 1500);
-    } else {
-      alert("Can't access with user role");
-      console.log("Error, user role");
-      showModal.value = false;
-    }
-
-    // if (process.client) {
-    //     const storedUser = localStorage.getItem('user')
-    //     if (storedUser) {
-    //         user.value = JSON.parse(storedUser)
-    //     }
-
-    //     if (user.role === "school_admin" || user.role === "school_staff") {
-    //         setTimeout(() => {
-    //             showModal.value = false
-    //             router.push(`/dashboard/${data.value.user.school}`)
-    //         }, 1500)
-
-    //     } else { // -- Super Admin Role --
-    //         setTimeout(() => {
-    //             showModal.value = false
-    //             router.push(`/dashboard/`)
-    //         }, 1500)
-
-    //     }
-    // }
-  } catch (err) {
+    modalMessage.value = "✅ Login successfully!";
     showModal.value = false;
-    errorMessage.value = err.message || "Server error";
+
+    // RBAC redirect
+    if (user.value.role === ROLES.SCHOOL_ADMIN) {
+      router.push("/dashboard");
+    } else {
+      router.push(`/dashboard/${user.value.schoolId}`);
+    }
+  } catch (err) {
+    errorMessage.value = err.message || "Login failed";
+    showModal.value = false;
   } finally {
     loading.value = false;
   }
 };
-</script>
 
+// const handleSubmit = async () => {
+//   errorMessage.value = "";
+//   try {
+//     showModal.value = true;
+//     modalMessage.value = "Logging in...";
+//     loading.value = true;
+
+//     const { data, error } = await useFetch(`${config.apiDomain}/auth/login`, {
+//       method: "POST",
+//       body: { email: email.value, password: password.value },
+//     });
+
+//     if (error.value) throw error.value.data?.message || "Login failed";
+
+//     // 🔹 เก็บลง localStorage
+//     localStorage.setItem("token", data.value.token);
+//     localStorage.setItem("user", JSON.stringify(data.value.user));
+//     localStorage.setItem("schoolId", data.value.user.school || "");
+//     localStorage.setItem("schoolName", data.value.user.schoolName || "");
+
+//     // localStorage.setItem('token', data.value.token)
+//     // localStorage.setItem('user', JSON.stringify(data.value.user))
+
+//     modalMessage.value = "✅ Login successfully!!!";
+
+//     let resolvedSchoolId = "";
+//     console.log("School name : ", data.value.user.school);
+//     if (data.value.user.school) {
+//       try {
+//         const res = await fetch(
+//           `${config.apiDomain}/schools/getSchoolIdByName/${data.value.user.school}`
+//         );
+//         if (res.ok) {
+//           const schoolData = await res.json();
+//           console.log("School data : ", schoolData);
+//           resolvedSchoolId = schoolData.schoolId;
+//           localStorage.setItem("schoolId", resolvedSchoolId);
+//         } else {
+//           console.warn(
+//             "❗ School not found from name:",
+//             data.value.user.school
+//           );
+//           localStorage.setItem("schoolId", "");
+//         }
+//       } catch (err) {
+//         console.error("Error fetching schoolId:", err);
+//         localStorage.setItem("schoolId", "");
+//       }
+//     }
+
+//     console.log("DATA : ", data.value);
+//     console.log("DATA ROLE : ", data.value.user.role);
+
+//     if (
+//       data.value.user.role === "school_admin" ||
+//       data.value.user.role === "school_staff"
+//     ) {
+//       setTimeout(() => {
+//         showModal.value = false;
+//         router.push(`/dashboard/${resolvedSchoolId}`);
+//       }, 1500);
+//     } else if (data.value.user.role === "super_admin") {
+//       // -- Super Admin Role --
+//       setTimeout(() => {
+//         showModal.value = false;
+//         router.push(`/dashboard/`);
+//       }, 1500);
+//     } else {
+//       alert("Can't access with user role");
+//       console.log("Error, user role");
+//       showModal.value = false;
+//     }
+
+//     // if (process.client) {
+//     //     const storedUser = localStorage.getItem('user')
+//     //     if (storedUser) {
+//     //         user.value = JSON.parse(storedUser)
+//     //     }
+
+//     //     if (user.role === "school_admin" || user.role === "school_staff") {
+//     //         setTimeout(() => {
+//     //             showModal.value = false
+//     //             router.push(`/dashboard/${data.value.user.school}`)
+//     //         }, 1500)
+
+//     //     } else { // -- Super Admin Role --
+//     //         setTimeout(() => {
+//     //             showModal.value = false
+//     //             router.push(`/dashboard/`)
+//     //         }, 1500)
+
+//     //     }
+//     // }
+//   } catch (err) {
+//     showModal.value = false;
+//     errorMessage.value = err.message || "Server error";
+//   } finally {
+//     loading.value = false;
+//   }
+// };
+</script>
 <template>
   <div class="flex h-screen overflow-hidden">
     <div class="flex w-1/2 h-full justify-center items-center bg-blue-200">

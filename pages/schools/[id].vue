@@ -6,11 +6,11 @@ import DeleteSchoolModal from "~~/components/DeleteSchoolModal.vue";
 
 const { public: config } = useRuntimeConfig();
 
+const { schools, isLoading, fetchSchools } = useSchools(config.apiDomain);
+
 const isCreateSchoolModalOpen = ref(false);
 const isAddSchoolAdminModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
-const isLoading = ref(false);
-const schools = ref([]);
 
 // โรงเรียนที่เลือกจะลบ
 const selectedSchoolId = ref("");
@@ -40,24 +40,6 @@ function handleAdded(data) {
 function handleDeleted(deletedSchool) {
   console.log("Deleted:", deletedSchool);
   fetchSchools();
-}
-
-// Fetch schools from API
-async function fetchSchools() {
-  try {
-    isLoading.value = true;
-    const res = await fetch(`${config.apiDomain}/schools/getAll`);
-    const json = await res.json();
-    if (json.success) {
-      schools.value = json.data;
-    } else {
-      console.error("❌ Failed to fetch schools");
-    }
-  } catch (err) {
-    console.error("🔥 Error fetching schools:", err);
-  } finally {
-    isLoading.value = false;
-  }
 }
 
 // Load on mounted

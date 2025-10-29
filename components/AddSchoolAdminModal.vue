@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -12,12 +12,45 @@ const form = ref({
   name: "",
   email: "",
   phone_number: "",
+  password: "",
   role: "",
   school: "",
   status: "Active",
 });
 
 const isLoading = ref(false);
+const schools = ref([]);
+
+watch(
+  () => props.modelValue,
+  async (val) => {
+    if (val) await fetchSchools();
+  }
+);
+
+async function fetchSchools() {
+  try {
+    const res = await fetch(`${config.apiDomain}/schools/getAll`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+      },
+    });
+
+    const data = await res.json();
+    console.log("📦 API Response:", data);
+
+    if (res.ok && Array.isArray(data.data)) {
+      schools.value = data.data;
+      console.log("✅ Loaded schools:", schools.value);
+    } else {
+      console.warn("Unexpected response:", data);
+    }
+  } catch (error) {
+    console.error("Error fetching schools:", error);
+  }
+}
 
 function closeModal() {
   emit("update:modelValue", false);
@@ -39,18 +72,31 @@ async function createUser() {
   try {
     isLoading.value = true;
 
-    const res = await fetch(`${config.apiDomain}/schools/createSchool`, {
+    const payload = {
+      name: form.value.name,
+      email: form.value.email,
+      password: form.value.password,
+      phone_number: form.value.phone_number,
+      role: form.value.role,
+      schoolId: form.value.school,
+    };
+
+    const res = await fetch(`${config.apiDomain}/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form.value),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+      },
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
 
-    if (res.ok && data.success) {
-      emit("created", data.data);
+    if (res.ok) {
+      alert("User created successfully!");
+      emit("created", data.user);
       closeModal();
-      window.location.reload();
+      //   window.location.reload();
     } else {
       alert(data.message || "Failed to create user");
     }
@@ -131,6 +177,18 @@ async function createUser() {
 
         <div>
           <label class="block text-sm font-medium mb-1"
+            >Password<span class="text-red-500">*</span></label
+          >
+          <input
+            v-model="form.password"
+            type="password"
+            placeholder="password"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1"
             >Role<span class="text-red-500">*</span></label
           >
           <input
@@ -150,9 +208,13 @@ async function createUser() {
             class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
           >
             <option disabled value="">Select School</option>
-            <option>School 1</option>
-            <option>School 2</option>
-            <option>School 3</option>
+            <option
+              v-for="school in schools"
+              :key="school.id"
+              :value="school.id"
+            >
+              {{ school.schoolName }}
+            </option>
           </select>
         </div>
       </div>

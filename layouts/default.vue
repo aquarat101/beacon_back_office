@@ -1,138 +1,107 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "~/stores/auth";
+import { ROLES } from "~/constants/role";
 
 const route = useRoute();
 const router = useRouter();
-const { public: config } = useRuntimeConfig();
+const authStore = useAuthStore();
+const authReady = ref(false);
 
-const user = ref({});
-const school = ref("");
-const menuItems = ref([]);
+// --- Reactive user & schoolId ---
+const user = computed(() => authStore.user || {});
+const schoolId = computed(() => user.value?.schoolId || "");
 
-onMounted(() => {
-  if (process.client) {
-    const storedUser = localStorage.getItem("user");
-    const schoolId = localStorage.getItem("schoolId");
-
-    if (storedUser) {
-      user.value = JSON.parse(storedUser);
-      school.value = user.value.school || "";
-      console.log("User : ", user.value);
-      console.log("School Id : ", schoolId);
-    }
-
-    if (school.value && user.value.role === "school_admin") {
-      console.log(
-        "User school_admin : ",
-        user.value.school,
-        " | ",
-        user.value.role
-      );
-
-      menuItems.value = [
-        {
-          name: "Dashboard",
-          path: `/dashboard/${schoolId}`,
-          img: "/images/layout/dashboard.png",
-        },
-        {
-          name: "Schools",
-          path: `/schools/${schoolId}`,
-          img: "/images/layout/school.png",
-        },
-        {
-          name: "Devices",
-          path: `/devices/${schoolId}`,
-          img: "/images/layout/device.png",
-        },
-        {
-          name: "Users",
-          path: `/users/${schoolId}`,
-          img: "/images/layout/user.png",
-        },
-        {
-          name: "System Log",
-          path: `/system_log/${schoolId}`,
-          img: "/images/layout/system_log.png",
-        },
-      ];
-    } else if (school.value && user.value.role === "school_staff") {
-      console.log(
-        "User school_staff : ",
-        user.value.school,
-        " | ",
-        user.value.role
-      );
-
-      menuItems.value = [
-        {
-          name: "Dashboard",
-          path: `/dashboard/${schoolId}`,
-          img: "/images/layout/dashboard.png",
-        },
-        {
-          name: "Devices",
-          path: `/devices/${schoolId}`,
-          img: "/images/layout/device.png",
-        },
-        {
-          name: "Users",
-          path: `/users/${schoolId}`,
-          img: "/images/layout/user.png",
-        },
-      ];
-    } else {
-      // -- Super Admin Role --
-      console.log(
-        "User super_admin : ",
-        user.value.school,
-        " | ",
-        user.value.role
-      );
-
-      menuItems.value = [
-        {
-          name: "Dashboard",
-          path: "/dashboard",
-          img: "/images/layout/dashboard.png",
-        },
-        { name: "Schools", path: "/schools", img: "/images/layout/school.png" },
-        { name: "Devices", path: "/devices", img: "/images/layout/device.png" },
-        { name: "Users", path: "/users", img: "/images/layout/user.png" },
-        {
-          name: "System Log",
-          path: "/system_log",
-          img: "/images/layout/system_log.png",
-        },
-      ];
+// --- Fetch user on mount if token exists ---
+onMounted(async () => {
+  // รอให้ fetchUser หรือ restore state เสร็จ
+  if (!authStore.user && authStore.token) {
+    try {
+      await authStore.fetchUser();
+    } catch (err) {
+      console.error(err);
     }
   }
+  authReady.value = true;
 });
 
-// ✅ Logout function
-const logout = async () => {
-  try {
-    if (!user.value?.email) return router.push("/auth/login");
+// --- Sidebar menu items ---
+const menuItems = computed(() => {
+  if (!user.value) return [];
 
-    await $fetch(`${config.apiDomain}/auth/logout`, {
-      method: "POST",
-      body: { email: user.value.email },
-    });
-
-    // ✅ เคลียร์ข้อมูลทั้งหมดทันที
-    localStorage.clear();
-    user.value = {};
-    school.value = "";
-    menuItems.value = [];
-
-    console.log("✅ Cleared storage and logged out");
-
-    // ✅ redirect หลังจากเคลียร์เสร็จ
-    router.push("/auth/login");
-  } catch (err) {
-    console.error("Logout failed:", err);
+  const role = user.value.role;
+  if (role === ROLES.SUPER_ADMIN) {
+    return [
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        img: "/images/layout/dashboard.png",
+      },
+      { name: "Schools", path: "/schools", img: "/images/layout/school.png" },
+      { name: "Devices", path: "/devices", img: "/images/layout/device.png" },
+      { name: "Users", path: "/users", img: "/images/layout/user.png" },
+      {
+        name: "System Log",
+        path: "/system_log",
+        img: "/images/layout/system_log.png",
+      },
+    ];
+  } else if (role === ROLES.SCHOOL_ADMIN) {
+    return [
+      {
+        name: "Dashboard",
+        path: `/dashboard/${schoolId.value}`,
+        img: "/images/layout/dashboard.png",
+      },
+      {
+        name: "Schools",
+        path: `/schools/${schoolId.value}`,
+        img: "/images/layout/school.png",
+      },
+      {
+        name: "Devices",
+        path: `/devices/${schoolId.value}`,
+        img: "/images/layout/device.png",
+      },
+      {
+        name: "Users",
+        path: `/users/${schoolId.value}`,
+        img: "/images/layout/user.png",
+      },
+      {
+        name: "System Log",
+        path: `/system_log/${schoolId.value}`,
+        img: "/images/layout/system_log.png",
+      },
+    ];
+  } else if (role === ROLES.SCHOOL_STAFF) {
+    return [
+      {
+        name: "Dashboard",
+        path: `/dashboard/${schoolId.value}`,
+        img: "/images/layout/dashboard.png",
+      },
+      {
+        name: "Devices",
+        path: `/devices/${schoolId.value}`,
+        img: "/images/layout/device.png",
+      },
+      {
+        name: "Users",
+        path: `/users/${schoolId.value}`,
+        img: "/images/layout/user.png",
+      },
+    ];
   }
+
+  return [];
+});
+
+const logout = async () => {
+  await authStore.logout();
+  router.push("/auth/login");
+  if (!user.value?.email) return router.push("/auth/login");
 };
 </script>
 

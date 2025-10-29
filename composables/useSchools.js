@@ -1,13 +1,13 @@
 import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 
-const auth = useAuthStore();
-
 export function useSchools(apiDomain) {
   const schools = ref([]);
   const isLoading = ref(false);
 
   async function fetchSchools() {
+    const auth = useAuthStore();
+
     try {
       isLoading.value = true;
       const res = await fetch(`${apiDomain}/schools/getAll`, {

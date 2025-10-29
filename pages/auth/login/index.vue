@@ -197,12 +197,12 @@ const handleSubmit = async () => {
           </button>
         </form>
 
-        <p class="mt-2 text-left text-sm text-gray-600">
+        <!-- <p class="mt-2 text-left text-sm text-gray-600">
           Don't have an account?
           <NuxtLink to="/auth/signup" class="text-blue-600 underline"
             >Sign Up</NuxtLink
           >
-        </p>
+        </p> -->
       </div>
     </div>
 

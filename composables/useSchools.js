@@ -1,4 +1,7 @@
 import { ref } from "vue";
+import { useAuthStore } from "~/stores/auth";
+
+const auth = useAuthStore();
 
 export function useSchools(apiDomain) {
   const schools = ref([]);
@@ -10,7 +13,7 @@ export function useSchools(apiDomain) {
       const res = await fetch(`${apiDomain}/schools/getAll`, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          Authorization: `Bearer ${auth.token}`,
         },
       });
       const json = await res.json();
@@ -23,5 +26,5 @@ export function useSchools(apiDomain) {
     }
   }
 
-  return { schools, isLoading, fetchSchools };
+  return { schools, isSchoolsLoading, fetchSchools };
 }

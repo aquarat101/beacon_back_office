@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
@@ -23,7 +25,12 @@ const statusOptions = ["Active", "Inactive"]
 const fetchSchool = async () => {
     try {
         loading.value = true
-        const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`)
+        const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const data = await res.json() // ✅ แปลง response เป็น JSON
 
         form.value = {

@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from "vue";
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
 });
@@ -21,6 +23,7 @@ function closeModal() {
 }
 
 async function createSchool() {
+  console.log("TOKEN : ", localStorage.getItem('token'))
   if (
     !form.value.schoolName ||
     !form.value.schoolType ||
@@ -37,7 +40,7 @@ async function createSchool() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${auth.token}`,
       },
       body: JSON.stringify(form.value),
     });
@@ -60,29 +63,18 @@ async function createSchool() {
 </script>
 
 <template>
-  <div
-    v-if="props.modelValue"
-    class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
-  >
+  <div v-if="props.modelValue" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md relative">
       <!-- Loading overlay -->
-      <div
-        v-if="isLoading"
-        class="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg"
-      >
-        <div
-          class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 animate-spin mb-3"
-        ></div>
+      <div v-if="isLoading" class="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
+        <div class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 animate-spin mb-3"></div>
         <p class="text-gray-600">Creating School...</p>
       </div>
 
       <!-- Header -->
       <div class="flex justify-between items-center px-6 py-4 border-b">
         <h2 class="text-lg font-semibold">Create School</h2>
-        <button
-          @click="closeModal"
-          class="text-gray-500 hover:text-black text-xl"
-        >
+        <button @click="closeModal" class="text-gray-500 hover:text-black text-xl">
           &times;
         </button>
       </div>
@@ -90,25 +82,15 @@ async function createSchool() {
       <!-- Body -->
       <div class="p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >School Name<span class="text-red-500">*</span></label
-          >
-          <input
-            v-model="form.schoolName"
-            type="text"
-            placeholder="school name"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
+          <label class="block text-sm font-medium mb-1">School Name<span class="text-red-500">*</span></label>
+          <input v-model="form.schoolName" type="text" placeholder="school name"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >School Type<span class="text-red-500">*</span></label
-          >
-          <select
-            v-model="form.schoolType"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          >
+          <label class="block text-sm font-medium mb-1">School Type<span class="text-red-500">*</span></label>
+          <select v-model="form.schoolType"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
             <option disabled value="">Select Type</option>
             <option>Public</option>
             <option>Private</option>
@@ -117,13 +99,9 @@ async function createSchool() {
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Education Level<span class="text-red-500">*</span></label
-          >
-          <select
-            v-model="form.educationLevel"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          >
+          <label class="block text-sm font-medium mb-1">Education Level<span class="text-red-500">*</span></label>
+          <select v-model="form.educationLevel"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
             <option disabled value="">Select Level</option>
             <option>Elementary</option>
             <option>Middle</option>
@@ -137,10 +115,7 @@ async function createSchool() {
         <button @click="closeModal" class="px-4 py-2 mr-3 border rounded-md">
           Cancel
         </button>
-        <button
-          @click="createSchool"
-          class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md"
-        >
+        <button @click="createSchool" class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md">
           Create
         </button>
       </div>

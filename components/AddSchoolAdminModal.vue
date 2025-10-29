@@ -1,6 +1,8 @@
 <script setup>
 import { ref, watch } from "vue";
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
 });
@@ -14,7 +16,7 @@ const form = ref({
   phone_number: "",
   password: "",
   role: "",
-  school: "",
+  schoolId: "",
   status: "Active",
 });
 
@@ -34,7 +36,7 @@ async function fetchSchools() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${auth.token}`,
       },
     });
 
@@ -63,7 +65,7 @@ async function createUser() {
     !form.value.email ||
     !form.value.phone_number ||
     !form.value.role ||
-    !form.value.school
+    !form.value.schoolId
   ) {
     alert("Please fill all required fields");
     return;
@@ -78,14 +80,14 @@ async function createUser() {
       password: form.value.password,
       phone_number: form.value.phone_number,
       role: form.value.role,
-      schoolId: form.value.school,
+      schoolId: form.value.schoolId,
     };
 
     const res = await fetch(`${config.apiDomain}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${auth.token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -110,29 +112,18 @@ async function createUser() {
 </script>
 
 <template>
-  <div
-    v-if="props.modelValue"
-    class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
-  >
+  <div v-if="props.modelValue" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md relative">
       <!-- Loading overlay -->
-      <div
-        v-if="isLoading"
-        class="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg"
-      >
-        <div
-          class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 animate-spin mb-3"
-        ></div>
+      <div v-if="isLoading" class="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
+        <div class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 animate-spin mb-3"></div>
         <p class="text-gray-600">Creating user...</p>
       </div>
 
       <!-- Header -->
       <div class="flex justify-between items-center px-6 py-4 border-b">
         <h2 class="text-lg font-semibold">Add Back Office User</h2>
-        <button
-          @click="closeModal"
-          class="text-gray-500 hover:text-black text-xl"
-        >
+        <button @click="closeModal" class="text-gray-500 hover:text-black text-xl">
           &times;
         </button>
       </div>
@@ -140,79 +131,41 @@ async function createUser() {
       <!-- Body -->
       <div class="p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Name<span class="text-red-500">*</span></label
-          >
-          <input
-            v-model="form.name"
-            type="text"
-            placeholder="name"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
+          <label class="block text-sm font-medium mb-1">Name<span class="text-red-500">*</span></label>
+          <input v-model="form.name" type="text" placeholder="name"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Email<span class="text-red-500">*</span></label
-          >
-          <input
-            v-model="form.email"
-            type="email"
-            placeholder="email"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
+          <label class="block text-sm font-medium mb-1">Email<span class="text-red-500">*</span></label>
+          <input v-model="form.email" type="email" placeholder="email"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Phone number<span class="text-red-500">*</span></label
-          >
-          <input
-            v-model="form.phone_number"
-            type="text"
-            placeholder="phone number"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
+          <label class="block text-sm font-medium mb-1">Phone number<span class="text-red-500">*</span></label>
+          <input v-model="form.phone_number" type="text" placeholder="phone number"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Password<span class="text-red-500">*</span></label
-          >
-          <input
-            v-model="form.password"
-            type="password"
-            placeholder="password"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
+          <label class="block text-sm font-medium mb-1">Password<span class="text-red-500">*</span></label>
+          <input v-model="form.password" type="password" placeholder="password"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >Role<span class="text-red-500">*</span></label
-          >
-          <input
-            v-model="form.role"
-            type="text"
-            placeholder="role"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          />
+          <label class="block text-sm font-medium mb-1">Role<span class="text-red-500">*</span></label>
+          <input v-model="form.role" type="text" placeholder="role"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium mb-1"
-            >School<span class="text-red-500">*</span></label
-          >
-          <select
-            v-model="form.school"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-          >
+          <label class="block text-sm font-medium mb-1">School<span class="text-red-500">*</span></label>
+          <select v-model="form.schoolId"
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
             <option disabled value="">Select School</option>
-            <option
-              v-for="school in schools"
-              :key="school.id"
-              :value="school.id"
-            >
+            <option v-for="school in schools" :key="school.id" :value="school.id">
               {{ school.schoolName }}
             </option>
           </select>
@@ -224,10 +177,7 @@ async function createUser() {
         <button @click="closeModal" class="px-4 py-2 mr-3 border rounded-md">
           Cancel
         </button>
-        <button
-          @click="createUser"
-          class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md"
-        >
+        <button @click="createUser" class="px-4 py-2 bg-color-main2 hover:bg-blue-600 text-white rounded-md">
           Add
         </button>
       </div>

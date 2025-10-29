@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useAuthStore } from "~/stores/auth";
+import { ROLES } from "~/constants/role";
 
 const auth = useAuthStore();
 const props = defineProps({
@@ -9,6 +10,8 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "created"]);
 
 const { public: config } = useRuntimeConfig();
+
+const role = ref(false);
 
 const form = ref({
   name: "",
@@ -59,7 +62,6 @@ function closeModal() {
 }
 
 async function createUser() {
-  // Validate required fields
   if (
     !form.value.name ||
     !form.value.email ||
@@ -98,7 +100,6 @@ async function createUser() {
       alert("User created successfully!");
       emit("created", data.user);
       closeModal();
-      //   window.location.reload();
     } else {
       alert(data.message || "Failed to create user");
     }
@@ -109,7 +110,25 @@ async function createUser() {
     isLoading.value = false;
   }
 }
+
+onMounted(() => {
+  const user = auth.user; // ✅ ดึง user จาก Pinia
+
+  if (user?.role === ROLES.SCHOOL_ADMIN) {
+    // ถ้าเป็น School Admin → สามารถสร้าง staff ได้เท่านั้น
+    role.value = false;
+    form.value.role = "school_staff";
+  } else {
+    // ถ้าเป็น Super Admin → สามารถสร้าง School Admin ได้
+    role.value = true;
+    form.value.role = "school_admin";
+  }
+
+  console.log("🔹 Current user role:", user?.role);
+  console.log("🔹 Assigned form.role:", form.value.role);
+});
 </script>
+
 
 <template>
   <div v-if="props.modelValue" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
@@ -156,8 +175,8 @@ async function createUser() {
 
         <div>
           <label class="block text-sm font-medium mb-1">Role<span class="text-red-500">*</span></label>
-          <input v-model="form.role" type="text" placeholder="role"
-            class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+          <input v-model="form.role" type="text" placeholder="" disabled
+            class="w-full border rounded-md px-3 py-2 focus:ring-2 bg-gray-200 text-gray-500 focus:ring-blue-400 focus:outline-none" />
         </div>
 
         <div>

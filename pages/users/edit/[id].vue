@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
@@ -39,7 +41,12 @@ const selectedAvatar = ref('')
 const fetchUser = async () => {
     try {
         loading.value = true
-        const response = await $fetch(`${config.apiDomain}/schools/getUser/${userId}`)
+        const response = await $fetch(`${config.apiDomain}/schools/getUser/${userId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         if (response.success) {
             const user = response.data
             form.value = {
@@ -78,6 +85,10 @@ const handleSave = async () => {
     try {
         const response = await $fetch(`${config.apiDomain}/schools/updateSchoolUser/${form.value.id}`, {
             method: 'PUT',
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
             body: {
                 name: form.value.name,
                 email: form.value.email,

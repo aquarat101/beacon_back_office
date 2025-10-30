@@ -2,10 +2,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue";
-import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue";
+import InviteUserModal from "~/components/InviteUserModal.vue";
 import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";
 import DeleteSchoolUserMultiModal from "~/components/DeleteSchoolUserMultiModal.vue";
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const { public: config } = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
@@ -16,7 +18,7 @@ const selectedSchoolUserName = ref("");
 
 // ✅ modal states
 const isCreateSchoolModalOpen = ref(false);
-const isAddSchoolAdminModalOpen = ref(false);
+const isInviteUserModalOpen = ref(false);
 const isDeleteModalOpen = ref(false);
 
 // ✅ data state
@@ -29,6 +31,31 @@ const activeSearchQuery = ref(""); // ค่าที่จะใช้ filter �
 // ✅ pagination
 const currentPage = ref(1);
 const pageSize = 10;
+
+// ✅ fetch API
+async function fetchSchoolUsers() {
+
+  try {
+    isLoading.value = true;
+    const res = await fetch(
+      `${config.apiDomain}/schools/getAllUser`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch school users");
+
+    const data = await res.json();
+    staffs.value = data.data || [];
+  } catch (err) {
+    console.error("❌ Fetch error:", err);
+    errorMessage.value = err.message;
+  } finally {
+    isLoading.value = false;
+  }
+}
 
 // ✅ ฟิลเตอร์ตามชื่อ (ใช้ activeSearchQuery แทน)
 const filteredStaffs = computed(() => {
@@ -116,25 +143,6 @@ function handleDeletedMulti() {
   selectedUsers.value = [];
 }
 
-// ✅ fetch API
-async function fetchSchoolUsers() {
-  try {
-    isLoading.value = true;
-    const res = await fetch(
-      `${config.apiDomain}/schools/getAllUserById/${schoolId}`
-    );
-    if (!res.ok) throw new Error("Failed to fetch school users");
-
-    const data = await res.json();
-    staffs.value = data.data || [];
-  } catch (err) {
-    console.error("❌ Fetch error:", err);
-    errorMessage.value = err.message;
-  } finally {
-    isLoading.value = false;
-  }
-}
-
 // ✅ เมื่อกดปุ่ม Search
 function handleSearch() {
   activeSearchQuery.value = searchQuery.value.trim();
@@ -173,38 +181,23 @@ onMounted(() => {
       <!-- Search & Filters -->
       <div class="bg-white p-4 rounded-xl shadow mb-4">
         <div class="flex flex-wrap gap-3 items-center">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by name"
-            class="border rounded-lg px-3 py-2 flex-1"
-          />
+          <input v-model="searchQuery" type="text" placeholder="Search by name"
+            class="border rounded-lg px-3 py-2 flex-1" />
 
-          <button
-            @click="handleSearch"
-            class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
+          <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
             Search
           </button>
         </div>
 
         <div class="flex gap-3 mt-4">
-          <button
-            @click="isAddSchoolAdminModalOpen = true"
-            class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg"
-          >
-            <img
-              src="/images/person_plus.png"
-              alt="person_plus"
-              class="w-4 h-4"
-            />
-            Add School Admin
+          <button @click="isInviteUserModalOpen = true"
+            class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
+            <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4" />
+            Invite User
           </button>
 
-          <button
-            @click="confirmDeleteSelected"
-            class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg"
-          >
+          <button @click="confirmDeleteSelected"
+            class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
             <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
             Delete ({{ selectedUsers.length }})
           </button>
@@ -228,39 +221,25 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="staff in paginatedStaffs"
-              :key="staff.id"
-              class="border-t hover:bg-gray-50"
-            >
+            <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
               <td class="p-3">
-                <input
-                  type="checkbox"
-                  :checked="selectedUsers.includes(staff.id)"
-                  @change="toggleUserSelection(staff.id)"
-                />
+                <input type="checkbox" :checked="selectedUsers.includes(staff.id)"
+                  @change="toggleUserSelection(staff.id)" />
               </td>
 
               <td class="p-3 text-center">
                 <div class="flex justify-center gap-2">
-                  <button
-                    class="bg-color-main3 text-white px-2 py-1 rounded"
-                    @click="$router.push(`/users/detail/${staff.id}`)"
-                  >
+                  <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                    @click="$router.push(`/users/detail/${staff.id}`)">
                     <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                   </button>
 
-                  <button
-                    class="bg-color-main3 text-white px-2 py-1 rounded"
-                    @click="$router.push(`/users/edit/${staff.id}`)"
-                  >
+                  <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                    @click="$router.push(`/users/edit/${staff.id}`)">
                     <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                   </button>
 
-                  <button
-                    class="bg-color-main-red text-white px-2 py-1 rounded"
-                    @click="confirmDelete(staff)"
-                  >
+                  <button class="bg-color-main-red text-white px-2 py-1 rounded" @click="confirmDelete(staff)">
                     <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                   </button>
                 </div>
@@ -272,16 +251,12 @@ onMounted(() => {
               <td class="p-3 text-center">{{ staff.role }}</td>
 
               <td class="p-3 text-center">
-                <span
-                  class="px-4 py-1 rounded-full text-sm"
-                  :class="
-                    staff.status === 'Active'
-                      ? 'bg-green-500 text-white'
-                      : staff.status === 'Pending'
-                      ? 'bg-color-main-yellow text-black'
-                      : 'bg-color-main-red text-white'
-                  "
-                >
+                <span class="px-4 py-1 rounded-full text-sm" :class="staff.status === 'Active'
+                  ? 'bg-green-500 text-white'
+                  : staff.status === 'Pending'
+                    ? 'bg-color-main-yellow text-black'
+                    : 'bg-color-main-red text-white'
+                  ">
                   {{ staff.status }}
                 </span>
               </td>
@@ -291,61 +266,36 @@ onMounted(() => {
 
         <!-- Pagination -->
         <div class="flex justify-end items-center p-4">
-          <button
-            class="text-color-main2 disabled:text-gray-600"
-            :disabled="currentPage === 1"
-            @click="goToPage(currentPage - 1)"
-          >
+          <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)">
             &lt; Previous
           </button>
 
           <div class="flex gap-2 px-8">
-            <button
-              v-for="page in pageNumbers"
-              :key="page + '-btn'"
-              class="px-3 py-1 rounded"
-              :disabled="page === '...'"
-              :class="
-                page === currentPage
-                  ? 'bg-blue-500 text-white'
-                  : page === '...'
+            <button v-for="page in pageNumbers" :key="page + '-btn'" class="px-3 py-1 rounded"
+              :disabled="page === '...'" :class="page === currentPage
+                ? 'bg-blue-500 text-white'
+                : page === '...'
                   ? 'bg-transparent text-gray-500 cursor-default'
                   : 'bg-white text-color-main2'
-              "
-              @click="goToPage(page)"
-            >
+                " @click="goToPage(page)">
               {{ page }}
             </button>
           </div>
 
-          <button
-            class="text-color-main2 disabled:text-gray-600"
-            :disabled="currentPage === totalPages"
-            @click="goToPage(currentPage + 1)"
-          >
+          <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)">
             Next &gt;
           </button>
         </div>
       </div>
     </div>
 
-    <CreateSchoolModal
-      v-model="isCreateSchoolModalOpen"
-      @created="handleCreated"
-    />
-    <AddSchoolAdminModal
-      v-model="isAddSchoolAdminModalOpen"
-      @added="handleAdded"
-    />
-    <DeleteSchoolUserModal
-      v-model="isDeleteModalOpen"
-      :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }"
-      @deleted="handleDeleted"
-    />
-    <DeleteSchoolUserMultiModal
-      v-model="deleteMultiModalOpen"
-      :schoolUsers="selectedUsersForDelete"
-      @deleted="handleDeletedMulti"
-    />
+    <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
+    <InviteUserModal v-model="isInviteUserModalOpen" :schoolId="schoolId" @added="handleAdded" />
+    <DeleteSchoolUserModal v-model="isDeleteModalOpen"
+      :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }" @deleted="handleDeleted" />
+    <DeleteSchoolUserMultiModal v-model="deleteMultiModalOpen" :schoolUsers="selectedUsersForDelete"
+      @deleted="handleDeletedMulti" />
   </div>
 </template>

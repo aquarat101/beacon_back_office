@@ -79,7 +79,8 @@ const handleSave = async () => {
         const response = await fetch(`${config.apiDomain}/schools/update/${form.value.id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
             },
             body: JSON.stringify(payload)
         })

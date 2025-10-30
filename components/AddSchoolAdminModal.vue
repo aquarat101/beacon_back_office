@@ -29,9 +29,23 @@ const schools = ref([]);
 watch(
   () => props.modelValue,
   async (val) => {
-    if (val) await fetchSchools();
+    if (val) {
+      await fetchSchools();
+
+      // ✅ รีเซ็ตค่า form ทุกครั้งที่เปิดใหม่
+      form.value = {
+        name: "",
+        email: "",
+        phone_number: "",
+        password: "",
+        role: form.value.role, // คง role เดิมไว้ตามสิทธิ์ user
+        schoolId: "",
+        status: "Active",
+      };
+    }
   }
 );
+
 
 async function fetchSchools() {
   try {
@@ -59,6 +73,17 @@ async function fetchSchools() {
 
 function closeModal() {
   emit("update:modelValue", false);
+
+  // ✅ เคลียร์ค่า form ทุกครั้งที่ปิด
+  form.value = {
+    name: "",
+    email: "",
+    phone_number: "",
+    password: "",
+    role: form.value.role,
+    schoolId: "",
+    status: "Active",
+  };
 }
 
 async function createUser() {

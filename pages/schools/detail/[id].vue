@@ -56,7 +56,10 @@ const currentPage = ref(1);
 const pageSize = 10;
 
 // ---------------- Fetch API ----------------
+const isLoading = ref(false);
+
 async function getSchool(id) {
+  isLoading.value = true;
   try {
     const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`, {
       headers: {
@@ -68,20 +71,26 @@ async function getSchool(id) {
     if (json.success) school.value = json.data;
   } catch (err) {
     console.error(err);
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function getSchoolStaffs() {
+  isLoading.value = true;
   try {
     const res = await fetch(`${config.apiDomain}/schools/getAllUser`);
     const json = await res.json();
     if (json.success) staffs.value = json.data || [];
   } catch (err) {
     console.error(err);
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function getStudents() {
+  isLoading.value = true;
   try {
     const res = await fetch(
       `${config.apiDomain}/schools/getAllStudent/${schoolId}`
@@ -114,6 +123,8 @@ async function getStudents() {
     }));
   } catch (err) {
     console.error("🔥 Error fetching students:", err);
+  } finally {
+    isLoading.value = false;
   }
 }
 
@@ -294,23 +305,31 @@ function handleDelete() {
   router.push("/schools");
 }
 
+if (userStorage.user.value.role === ROLES.SCHOOL_ADMIN) {
+  role.value = false
+} else {
+  role.value = true
+}
+
 // ---------------- Load ----------------
 onMounted(async () => {
   await getSchoolStaffs();
   await getSchool(schoolId);
   await getStudents();
 
-  if (userStorage.user.value.role === ROLES.SCHOOL_ADMIN) {
-    role.value = false
-  } else {
-    role.value = true
-  }
-  
 });
 </script>
 
 <template>
   <div class="h-screen p-6">
+    <!-- Overlay Loading -->
+    <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 flex flex-col items-center shadow-lg w-64">
+        <div class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mb-3 animate-spin"></div>
+        <p class="text-gray-700 text-center font-medium">Loading...</p>
+      </div>
+    </div>
+
     <!-- Back button -->
     <h1 class="text-2xl font-bold mb-4">School Detail</h1>
 
@@ -335,7 +354,7 @@ onMounted(async () => {
     </div>
 
     <!-- Info tab -->
-    <div v-if="currentTab === 'info'" class="bg-white p-6 rounded-xl shadow">
+    <div v-if="currentTab === 'info' && !isLoading" class="bg-white p-6 rounded-xl shadow">
       <div class="flex items-center justify-between mb-6">
         <div>
           <div class="flex gap-3">
@@ -403,7 +422,7 @@ onMounted(async () => {
     </div>
 
     <!-- Staffs tab -->
-    <div v-if="currentTab === 'staff'" class="bg-white p-6 rounded-xl shadow">
+    <div v-if="currentTab === 'staff' && !isLoading" class="bg-white p-6 rounded-xl shadow">
       <div class="">
         <!-- Page Title -->
         <div>
@@ -555,7 +574,7 @@ onMounted(async () => {
     </div>
 
     <!-- Students tab -->
-    <div v-if="currentTab === 'students'" class="bg-white p-6 rounded-xl shadow">
+    <div v-if="currentTab === 'students' && !isLoading" class="bg-white p-6 rounded-xl shadow">
       <div class="">
         <!-- Page Title -->
         <div>

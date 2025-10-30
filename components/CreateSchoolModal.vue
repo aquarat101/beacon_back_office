@@ -20,6 +20,13 @@ const isLoading = ref(false);
 
 function closeModal() {
   emit("update:modelValue", false);
+
+  // ✅ เคลียร์ form ตอนปิดด้วย (กันพลาด)
+  form.value = {
+    schoolName: "",
+    schoolType: "",
+    educationLevel: "",
+  };
 }
 
 async function createSchool() {
@@ -60,6 +67,20 @@ async function createSchool() {
     isLoading.value = false;
   }
 }
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      form.value = {
+        schoolName: "",
+        schoolType: "",
+        educationLevel: "",
+      };
+    }
+  }
+);
+
 </script>
 
 <template>

@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
@@ -24,7 +26,12 @@ const isLoading = ref(true)
 // ✅ โหลดข้อมูลจาก API
 async function fetchStaffDetail() {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/getUser/${staffId}`)
+        const res = await fetch(`${config.apiDomain}/schools/getUser/${staffId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const json = await res.json()
         if (json.success) {
             form.value = json.data
@@ -43,8 +50,10 @@ async function handleSave() {
     try {
         const res = await fetch(`${config.apiDomain}/schools/updateSchoolUser/${staffId}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form.value),
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            }, body: JSON.stringify(form.value),
         })
         const json = await res.json()
         if (json.success) {

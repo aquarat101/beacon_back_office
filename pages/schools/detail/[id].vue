@@ -79,7 +79,12 @@ async function getSchool(id) {
 async function getSchoolStaffs() {
   isLoading.value = true;
   try {
-    const res = await fetch(`${config.apiDomain}/schools/getAllUser`);
+    const res = await fetch(`${config.apiDomain}/schools/getAllUser`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.token}`,
+      },
+    });
     const json = await res.json();
     if (json.success) staffs.value = json.data || [];
   } catch (err) {
@@ -93,7 +98,12 @@ async function getStudents() {
   isLoading.value = true;
   try {
     const res = await fetch(
-      `${config.apiDomain}/schools/getAllStudent/${schoolId}`
+      `${config.apiDomain}/schools/getAllStudent/${schoolId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.token}`,
+      },
+    }
     );
     const json = await res.json();
     if (!json.success) return console.warn("No students found");
@@ -106,8 +116,10 @@ async function getStudents() {
     const kidIds = studentRefs.map((s) => s.kidId);
     const kidsRes = await fetch(`${config.apiDomain}/kids/getMultiKid`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: kidIds }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${auth.token}`,
+      }, body: JSON.stringify({ ids: kidIds }),
     });
     const kidsJson = await kidsRes.json();
     if (!kidsJson.success) return console.warn("No kids data found");

@@ -2,7 +2,9 @@
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from 'vue-router'
 import DeleteKidModal from '~/components/DeleteKidModal.vue'
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const route = useRoute()
 const router = useRouter()
 
@@ -63,20 +65,35 @@ async function fetchKidAndParent() {
     try {
         isLoading.value = true
 
-        const kidRes = await fetch(`${config.apiDomain}/kids/getKid/${userId}/${kidId}`)
+        const kidRes = await fetch(`${config.apiDomain}/kids/getKid/${userId}/${kidId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         if (!kidRes.ok) throw new Error("Failed to fetch kid")
         const kidData = await kidRes.json()
         const kid = kidData
 
         let parent = null
         if (userId) {
-            const userRes = await fetch(`${config.apiDomain}/users/get/${userId}`)
+            const userRes = await fetch(`${config.apiDomain}/users/get/${userId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${auth.token}`,
+                },
+            })
             if (userRes.ok) parent = await userRes.json()
         }
 
         let place = null
         if (kid.lastZoneId) {
-            const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${userId}/${kid.lastZoneId}`)
+            const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${userId}/${kid.lastZoneId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${auth.token}`,
+                },
+            })
             if (placeRes.ok) place = await placeRes.json()
         }
 
@@ -117,7 +134,12 @@ async function fetchLocations(beaconId) {
     loadingLocations.value = true
     try {
         // เรียก API รวม hits + exits
-        const res = await fetch(`${config.apiDomain}/beacons/getZoneEvents/${beaconId}/${userId}`)
+        const res = await fetch(`${config.apiDomain}/beacons/getZoneEvents/${beaconId}/${userId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const json = await res.json()
 
         if (!json.success) {
@@ -136,7 +158,12 @@ async function fetchLocations(beaconId) {
 
                 if (item.zoneId) {
                     try {
-                        const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${userId}/${item.zoneId}`)
+                        const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${userId}/${item.zoneId}`, {
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${auth.token}`,
+                            },
+                        })
                         if (placeRes.ok) {
                             const placeData = await placeRes.json()
                             placeName = placeData.name || '-'

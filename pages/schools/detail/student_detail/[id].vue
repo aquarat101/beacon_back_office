@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const route = useRoute()
 const router = useRouter()
 const { public: config } = useRuntimeConfig()
@@ -18,14 +20,24 @@ const deleting = ref(false) // สำหรับ loading state ขณะลบ
 // Fetch kid info
 const fetchKid = async () => {
     try {
-        const res = await fetch(`${config.apiDomain}/kids/getKidByKidId/${kidId}`)
+        const res = await fetch(`${config.apiDomain}/kids/getKidByKidId/${kidId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const result = await res.json()
         kid.value = {
             ...result,
             status: result.status || 'Inactive'
         }
 
-        const resUser = await fetch(`${config.apiDomain}/users/get/${kid.value.userId}`)
+        const resUser = await fetch(`${config.apiDomain}/users/get/${kid.value.userId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const resultUser = await resUser.json()
         user.value = resultUser
     } catch (error) {
@@ -37,7 +49,12 @@ const fetchKid = async () => {
 // Fetch school name
 const fetchSchoolName = async () => {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`)
+        const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const result = await res.json()
         schoolName.value = result.data.schoolName
     } catch (error) {

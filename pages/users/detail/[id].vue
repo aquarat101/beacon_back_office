@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DeleteSchoolUserModal from '~/components/DeleteSchoolUserModal.vue'
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
@@ -15,7 +17,12 @@ const errorMessage = ref('')
 
 async function fetchUser() {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/getUser/${userId}`)
+        const res = await fetch(`${config.apiDomain}/schools/getUser/${userId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         user.value = data.data || null

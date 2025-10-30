@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DeleteSchoolUserModal from '~/components/DeleteSchoolUserModal.vue'
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
@@ -15,7 +17,12 @@ const isLoading = ref(true)
 // ✅ โหลดข้อมูลจาก API: /schools/getUser/:id
 async function getSchoolUser() {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/getUser/${staffId}`)
+        const res = await fetch(`${config.apiDomain}/schools/getUser/${staffId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         const json = await res.json()
         if (json.success) {
             staff.value = json.data
@@ -80,7 +87,7 @@ function handleDeleted() {
                     <p class="mt-2"><strong>Email</strong><br />{{ staff.email }}</p>
                     <p class="mt-2"><strong>Phone Number</strong><br />{{ staff.phone_number }}</p>
                     <p class="mt-2"><strong>Role</strong><br />{{ staff.role }}</p>
-                    <p class="mt-2"><strong>School</strong><br />{{ staff.school     }}</p>
+                    <p class="mt-2"><strong>School</strong><br />{{ staff.school }}</p>
 
                     <button @click="deleteModalOpen = true" class="text-blue-500 font-bold mt-4 underline">
                         Delete Staff

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
-import { useAuthStore } from "~/stores/auth";
 import { ROLES } from "~/constants/role";
+import { useAuthStore } from "~/stores/auth";
 
 const auth = useAuthStore();
 const props = defineProps({

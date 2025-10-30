@@ -4,7 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import AddDeviceModal from '~/components/AddDeviceModal.vue'
 import DeleteKidModal from '~/components/DeleteKidModal.vue'
 import DeleteKidMultiModal from '~/components/DeleteKidMultiModal.vue'
+import { useAuthStore } from "~/stores/auth";
 
+const auth = useAuthStore();
 const route = useRoute()
 const router = useRouter()
 const school = route.params.id
@@ -34,7 +36,12 @@ async function fetchKids() {
     try {
         isLoading.value = true
         const { public: config } = useRuntimeConfig()
-        const res = await fetch(`${config.apiDomain}/kids/getAllKids`)
+        const res = await fetch(`${config.apiDomain}/kids/getAllKids`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
         if (!res.ok) throw new Error("Failed to fetch kids")
         const data = await res.json()
         const rawKids = data.kids || []
@@ -45,7 +52,12 @@ async function fetchKids() {
                 let parentName = "Unknown parent"
 
                 try {
-                    const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${kid.userId}/${kid.lastZoneId}`)
+                    const placeRes = await fetch(`${config.apiDomain}/places/getPlace/${kid.userId}/${kid.lastZoneId}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${auth.token}`,
+                        },
+                    })
                     if (placeRes.ok) {
                         const placeData = await placeRes.json()
                         placeName = placeData?.place?.name || placeData?.name || "Unknown place"
@@ -53,7 +65,12 @@ async function fetchKids() {
                 } catch { }
 
                 try {
-                    const userRes = await fetch(`${config.apiDomain}/users/get/${kid.userId}`)
+                    const userRes = await fetch(`${config.apiDomain}/users/get/${kid.userId}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${auth.token}`,
+                        },
+                    })
                     if (userRes.ok) {
                         const userData = await userRes.json()
                         parentName = userData?.user?.firstName || userData?.firstName || "Unknown parent"

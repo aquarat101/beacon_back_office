@@ -6,8 +6,11 @@ import InviteUserModal from "~/components/InviteUserModal.vue";
 import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";
 import DeleteSchoolUserMultiModal from "~/components/DeleteSchoolUserMultiModal.vue";
 import { useAuthStore } from "~/stores/auth";
+import { useAuth } from "~/composables/useAuth";
+import { ROLES } from "~/constants/role";
 
 const auth = useAuthStore();
+const userStorage = useAuth();
 const { public: config } = useRuntimeConfig();
 const route = useRoute();
 const router = useRouter();
@@ -69,10 +72,23 @@ const filteredStaffs = computed(() => {
 const totalPages = computed(() =>
   Math.ceil(filteredStaffs.value.length / pageSize)
 );
+
+const rolePriority = {
+  school_admin: 1,
+  school_staff: 2,
+};
+
 const paginatedStaffs = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
-  return filteredStaffs.value.slice(start, start + pageSize);
+
+  // ✅ เรียง role ก่อน แล้วค่อยตัดหน้าเพจ
+  const sorted = [...filteredStaffs.value].sort((a, b) => {
+    return rolePriority[a.role] - rolePriority[b.role];
+  });
+
+  return sorted.slice(start, start + pageSize);
 });
+
 
 // ✅ สร้างเลขหน้า
 const pageNumbers = computed(() => {
@@ -223,23 +239,34 @@ onMounted(() => {
           <tbody>
             <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
               <td class="p-3">
-                <input type="checkbox" :checked="selectedUsers.includes(staff.id)"
-                  @change="toggleUserSelection(staff.id)" />
+                <!-- ✅ super_admin & school_admin สามารถเลือกได้ -->
+                <input
+                  v-if="userStorage.user.value.role === ROLES.SUPER_ADMIN || userStorage.user.value.role === ROLES.SCHOOL_ADMIN"
+                  type="checkbox" :checked="selectedUsers.includes(staff.id)" @change="toggleUserSelection(staff.id)" />
               </td>
 
               <td class="p-3 text-center">
                 <div class="flex justify-center gap-2">
+                  <!-- ✅ ปุ่มดู -->
                   <button class="bg-color-main3 text-white px-2 py-1 rounded"
-                    @click="$router.push(`/users/detail/${staff.id}`)">
+                    @click="$router.push({ path: `/users/detail/${staff.id}`, query: { schoolId } })">
                     <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                   </button>
 
-                  <button class="bg-color-main3 text-white px-2 py-1 rounded"
-                    @click="$router.push(`/users/edit/${staff.id}`)">
+                  <!-- ✅ ปุ่มแก้ไข -->
+                  <button v-if="
+                    userStorage.user.value.role === ROLES.SUPER_ADMIN ||
+                    (userStorage.user.value.role === ROLES.SCHOOL_ADMIN && staff.role !== ROLES.SCHOOL_ADMIN)
+                  " class="bg-color-main3 text-white px-2 py-1 rounded"
+                    @click="$router.push({ path: `/users/edit/${staff.id}`, query: { schoolId } })">
                     <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                   </button>
 
-                  <button class="bg-color-main-red text-white px-2 py-1 rounded" @click="confirmDelete(staff)">
+                  <!-- ✅ ปุ่มลบ -->
+                  <button v-if="
+                    userStorage.user.value.role === ROLES.SUPER_ADMIN ||
+                    (userStorage.user.value.role === ROLES.SCHOOL_ADMIN && staff.role !== ROLES.SCHOOL_ADMIN)
+                  " class="bg-color-main-red text-white px-2 py-1 rounded" @click="confirmDelete(staff)">
                     <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                   </button>
                 </div>
@@ -262,6 +289,7 @@ onMounted(() => {
               </td>
             </tr>
           </tbody>
+
         </table>
 
         <!-- Pagination -->

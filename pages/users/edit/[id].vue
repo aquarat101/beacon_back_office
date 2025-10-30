@@ -9,6 +9,7 @@ const route = useRoute()
 const router = useRouter()
 
 const userId = route.params.id
+const schoolId = route.query.schoolId
 
 const form = ref({
     id: "",
@@ -73,6 +74,23 @@ const fetchUser = async () => {
     }
 }
 
+const schoolName = ref()
+
+async function getSchool() {
+    try {
+        const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        });
+        const json = await res.json();
+        if (json.success) schoolName.value = json.data.schoolName;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 // ✅ Confirm avatar selection
 function confirmAvatar() {
     if (!selectedAvatar.value) return
@@ -116,7 +134,11 @@ const handleCancel = () => {
     router.push("/schools")
 }
 
-onMounted(fetchUser)
+onMounted(() => {
+    fetchUser()
+    getSchool()
+})
+
 </script>
 
 <template>
@@ -164,14 +186,17 @@ onMounted(fetchUser)
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Role</label>
-                    <input v-model="form.role" type="text" class="w-full border rounded-lg p-2" />
+                    <input v-model="form.role" type="text" disabled
+                        class="w-full border rounded-lg p-2 bg-gray-100 text-gray-400" />
+
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">School</label>
-                    <select v-model="form.school" class="w-full border rounded-lg p-2">
-                        <option v-for="sc in schoolTypes" :key="sc">{{ sc }}</option>
-                    </select>
+                    <input v-model="schoolName" disabled
+                        class="w-full border rounded-lg p-2 bg-gray-100 text-gray-400" />
+
+                    </input>
                 </div>
 
                 <div>

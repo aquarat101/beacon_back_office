@@ -9,6 +9,7 @@ const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 const userId = route.params.id
+const schoolId = route.query.schoolId
 
 const deleteModalOpen = ref(false)
 const user = ref(null)
@@ -26,6 +27,7 @@ async function fetchUser() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         user.value = data.data || null
+        console.log(user.value)
     } catch (err) {
         console.error(err)
         errorMessage.value = 'Failed to load user data'
@@ -57,7 +59,7 @@ onMounted(fetchUser)
                         <h2 class="text-xl font-bold">{{ user.name }}</h2>
 
                         <span class="text-sm text-white px-2 py-1 rounded-full"
-                            :class="user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'">
+                            :class="user.status === 'Active' ? 'bg-green-500' : 'bg-red-500'">
                             {{ user.status }}
                         </span>
                     </div>
@@ -66,7 +68,7 @@ onMounted(fetchUser)
                 </div>
 
                 <button class="flex bg-blue-500 text-white px-4 py-2 rounded"
-                    @click="$router.push(`/users/edit/${user.id}`)">
+                    @click="$router.push({ path: `/users/edit/${user.id}`, query: { schoolId: schoolId } })">
                     <img src="/images/edit.png" alt="edit" class="w-5 h-5 mr-1 mt-0.5" />
                     Edit
                 </button>

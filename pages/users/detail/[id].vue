@@ -18,7 +18,7 @@ const errorMessage = ref('')
 
 async function fetchUser() {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/getUser/${userId}`, {
+        const res = await fetch(`${config.apiDomain}/schoolUsers/getUser/${userId}`, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${auth.token}`,

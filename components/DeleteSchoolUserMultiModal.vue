@@ -34,7 +34,7 @@ async function confirmDelete() {
     // ลบทีละคน (loop) หรือเปลี่ยนเป็น API ที่รองรับ array ก็ได้
     for (const user of props.schoolUsers) {
       const res = await fetch(
-        `${config.apiDomain}/schools/deleteUser/${user.id}`,
+        `${config.apiDomain}/schoolUsers/deleteUser/${user.id}`,
         {
           method: "DELETE",
           headers: {

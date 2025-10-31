@@ -118,10 +118,12 @@ function handleDeletedMulti() {
 }
 
 // ✅ fetch API
-async function fetchSchoolUsers() {
+async function fetchSchoolUsers() {  
+  console.log("1");
+  
   try {
     isLoading.value = true;
-    const res = await fetch(`${config.apiDomain}/schools/getAllUser`, {
+    const res = await fetch(`${config.apiDomain}/schoolUsers/getAllUser`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${auth.token}`,
@@ -131,6 +133,8 @@ async function fetchSchoolUsers() {
 
     const data = await res.json();
     staffs.value = data.data || [];
+    console.log("2");
+    
   } catch (err) {
     console.error("❌ Fetch error:", err);
     errorMessage.value = err.message;
@@ -139,23 +143,13 @@ async function fetchSchoolUsers() {
   }
 }
 
-// ✅ เมื่อกดปุ่ม Search
 function handleSearch() {
   activeSearchQuery.value = searchQuery.value.trim();
   currentPage.value = 1;
 }
-
-// ✅ modal handlers
-function handleCreated() {
-  fetchSchoolUsers();
-}
-
-function handleAdded() {
-  fetchSchoolUsers();
-}
-
-function handleDeleted() {
-  fetchSchoolUsers();
+function handleClearSearch() {
+  activeSearchQuery.value = searchQuery.value = "";
+  currentPage.value = 1;
 }
 
 function confirmDelete(staff) {
@@ -182,6 +176,9 @@ onMounted(() => {
 
           <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
             Search
+          </button>
+          <button @click="handleClearSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+            Clear
           </button>
         </div>
 
@@ -287,10 +284,10 @@ onMounted(() => {
       </div>
     </div>
 
-    <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-    <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
+    <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="fetchSchoolUsers" />
+    <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @created="fetchSchoolUsers" />
     <DeleteSchoolUserModal v-model="isDeleteModalOpen"
-      :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }" @deleted="handleDeleted" />
+      :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }" @deleted="fetchSchoolUsers" />
     <DeleteSchoolUserMultiModal v-model="deleteMultiModalOpen" :schoolUsers="selectedUsersForDelete"
       @deleted="handleDeletedMulti" />
   </div>

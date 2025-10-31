@@ -42,7 +42,7 @@ const selectedAvatar = ref('')
 const fetchUser = async () => {
     try {
         loading.value = true
-        const response = await $fetch(`${config.apiDomain}/schools/getUser/${userId}`, {
+        const response = await $fetch(`${config.apiDomain}/schoolUsers/getUser/${userId}`, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${auth.token}`,

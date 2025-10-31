@@ -30,7 +30,7 @@ async function confirmDelete() {
   if (!props.schoolUser.id) return;
   try {
     const res = await fetch(
-      `${config.apiDomain}/schools/deleteUser/${props.schoolUser.id}`,
+      `${config.apiDomain}/schoolUsers/deleteUser/${props.schoolUser.id}`,
       {
         method: "DELETE",
         headers: {

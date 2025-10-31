@@ -1,6 +1,4 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue";
 import InviteUserModal from "~/components/InviteUserModal.vue";
 import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";

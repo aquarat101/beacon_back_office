@@ -98,7 +98,7 @@ async function getStudents() {
   isLoading.value = true;
   try {
     const res = await fetch(
-      `${config.apiDomain}/schools/getAllStudent/${schoolId}`, {
+      `${config.apiDomain}/students/getAllStudent/${schoolId}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${auth.token}`,

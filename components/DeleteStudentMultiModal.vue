@@ -5,12 +5,12 @@ import { useAuthStore } from "~/stores/auth";
 const auth = useAuthStore();
 const props = defineProps({
   modelValue: Boolean,
-  kid: {
+  student: {
     // สำหรับ single delete
     type: Object,
     default: () => ({ id: "", name: "" }),
   },
-  kids: {
+  students: {
     // สำหรับ multi delete
     type: Array,
     default: () => [],
@@ -31,15 +31,15 @@ function close() {
   isOpen.value = false;
 }
 
-// 🔹 ลบ kid หรือ kids จริง
+// 🔹 ลบ student หรือ students จริง
 async function confirmDelete() {
   const targets =
-    props.kids.length > 0 ? props.kids : props.kid.id ? [props.kid] : [];
-  if (!targets.length) return console.error("No kid(s) to delete");
+    props.students.length > 0 ? props.students : props.student.id ? [props.student] : [];
+  if (!targets.length) return console.error("No student(s) to delete");
 
   try {
     for (const k of targets) {
-      const res = await fetch(`${config.apiDomain}/kids/delete/${k.id}`, {
+      const res = await fetch(`${config.apiDomain}/${schoolId}/delete/${studentId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -48,7 +48,7 @@ async function confirmDelete() {
       });
       const json = await res.json();
       if (!res.ok) {
-        console.error("❌ Failed to delete kid:", k, json.message);
+        console.error("❌ Failed to delete student:", k, json.message);
         alert(
           `Failed to delete "${k.name}": ${json.message || "Unknown error"}`
         );
@@ -60,16 +60,16 @@ async function confirmDelete() {
     emit("deleted", targets.length > 1 ? targets : targets[0]);
     close();
   } catch (err) {
-    console.error("🔥 Error deleting kid(s):", err);
-    alert("Error deleting kid(s): " + err.message);
+    console.error("🔥 Error deleting student(s):", err);
+    alert("Error deleting student(s): " + err.message);
   }
 }
 
 // สำหรับแสดงข้อความ modal
-const kidNames = computed(() => {
-  if (props.kids.length > 0)
-    return props.kids.map((k) => `"${k.name}"`).join(", ");
-  if (props.kid?.name) return `"${props.kid.name}"`;
+const studentNames = computed(() => {
+  if (props.students.length > 0)
+    return props.students.map((k) => `"${k.name}"`).join(", ");
+  if (props.student?.name) return `"${props.student.name}"`;
   return "";
 });
 </script>
@@ -81,15 +81,15 @@ const kidNames = computed(() => {
         <img src="/images/trash_red.png" alt="trash" class="bg-red-100 w-16 h-16 p-2 rounded-full" />
         <div>
           <p class="text-xl font-bold mb-1 mt-1">
-            <template v-if="props.kids.length === 1">
-              Delete "{{ props.kids[0].name }}"
+            <template v-if="props.students.length === 1">
+              Delete "{{ props.students[0].name }}"
             </template>
-            <template v-else> Delete {{ props.kids.length }} kids? </template>
+            <template v-else> Delete {{ props.students.length }} students? </template>
           </p>
           <p class="text-sm">
             Are you sure you want to delete
-            <template v-if="props.kids.length === 1">this kid?</template>
-            <template v-else>these kids?</template>
+            <template v-if="props.students.length === 1">this student?</template>
+            <template v-else>these students?</template>
           </p>
         </div>
       </div>

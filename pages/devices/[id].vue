@@ -2,10 +2,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AddDeviceModal from "~/components/AddDeviceModal.vue";
-import DeleteKidModal from "~/components/DeleteKidModal.vue";
-import DeleteKidMultiModal from "~/components/DeleteKidMultiModal.vue";
+import DeleteStudentModal from "~/components/DeleteStudentModal.vue";
+import DeleteStudentMultiModal from "~/components/DeleteStudentMultiModal.vue";
+import { useAuthStore } from "~/stores/auth";
 
 const { public: config } = useRuntimeConfig();
+const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const schoolId = route.params.id;
@@ -31,46 +33,29 @@ const isLoading = ref(false);
 const errorMessage = ref("");
 
 // fetch kids
-async function fetchKids() {
+async function fetchStudents() {
   try {
     const res = await fetch(
-      `${config.apiDomain}/schools/getAllStudent/${schoolId}`
+      `${config.apiDomain}/students/getAllStudent/${schoolId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+      }
     );
     const json = await res.json();
     if (!json.success) return console.warn("No students found");
-    const studentRefs = json.data;
-    if (studentRefs.length === 0) {
-      kids.value = [];
-      return;
-    }
-
-    const kidIds = studentRefs.map((s) => s.kidId);
-    const kidsRes = await fetch(`${config.apiDomain}/kids/getMultiKid`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: kidIds }),
-    });
-    const kidsJson = await kidsRes.json();
-    if (!kidsJson.success) return console.warn("No kids data found");
-
-    kids.value = kidsJson.data.map((kid) => ({
-      id: kid.id,
-      userId: kid.userId,
-      beaconId: kid.beaconId,
-      name: kid.name,
-      parentName: kid.parentName || "-",
-      placeName: kid.placeName || "-",
-      lastLat: kid.lastLat || null,
-      lastLng: kid.lastLng || null,
-      status: kid.status || "Inactive",
-    }));
+    kids.value = json.data;
+    console.log(kids.value)
+   
   } catch (err) {
     console.error("🔥 Error fetching students:", err);
   }
 }
 
 function handleCreated() {
-  fetchKids();
+  fetchStudents();
 }
 
 // ---------------- Selection ----------------
@@ -162,7 +147,7 @@ function handleDeleted(kid) {
   kids.value = kids.value.filter((k) => k.id !== kid.id);
 }
 
-onMounted(fetchKids);
+onMounted(fetchStudents);
 </script>
 
 <template>
@@ -171,41 +156,28 @@ onMounted(fetchKids);
 
     <div class="bg-white p-4 rounded-xl shadow mb-4">
       <div class="flex flex-wrap gap-3 items-center">
-        <input
-          v-model="searchQueryInput"
-          type="text"
-          placeholder="Search by name"
-          class="border rounded-lg px-3 py-2 flex-1"
-        />
+        <input v-model="searchQueryInput" type="text" placeholder="Search by name"
+          class="border rounded-lg px-3 py-2 flex-1" />
 
-        <button
-          @click="handleSearch"
-          class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
+        <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
           Search
         </button>
       </div>
 
       <div class="flex gap-3 mt-4">
-        <button
-          @click="addDeviceModalOpen = true"
-          class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
+        <button @click="addDeviceModalOpen = true"
+          class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
           + Add device
         </button>
 
-        <button
-          class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
+        <button class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
           <img src="/images/import.png" alt="import" class="w-4 h-4" />
           Import
         </button>
 
         <!-- multi delete button -->
-        <button
-          @click="confirmDeleteSelected"
-          class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg"
-        >
+        <button @click="confirmDeleteSelected"
+          class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
           <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
           Delete ({{ selectedKids.length }})
         </button>
@@ -235,55 +207,39 @@ onMounted(fetchKids);
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="kid in paginatedKids"
-            :key="kid.beaconId"
-            class="border-t hover:bg-gray-50"
-          >
+          <tr v-for="kid in paginatedKids" :key="kid.beaconId" class="border-t hover:bg-gray-50">
             <td class="p-3">
-              <input
-                type="checkbox"
-                :checked="selectedKids.includes(kid.id)"
-                @change="toggleKidSelection(kid.id)"
-              />
+              <input type="checkbox" :checked="selectedKids.includes(kid.id)" @change="toggleKidSelection(kid.id)" />
             </td>
 
             <td class="p-3 text-center">
               <div class="flex justify-center gap-2">
-                <button
-                  class="bg-color-main3 text-white px-2 py-1 rounded"
-                  @click="
-                    router.push({
-                      path: `/devices/detail/${kid.id}`,
-                      query: { userId: kid.userId },
-                    })
-                  "
-                >
+                <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="
+                  router.push({
+                    path: `/devices/detail/${kid.id}`,
+                    query: { userId: kid.userId },
+                  })
+                  ">
                   <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                 </button>
-                <button
-                  class="bg-color-main-red text-white px-2 py-1 rounded"
-                  @click="openDeleteModal(kid)"
-                >
+                <button class="bg-color-main-red text-white px-2 py-1 rounded" @click="openDeleteModal(kid)">
                   <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                 </button>
               </div>
             </td>
 
             <td class="p-3 text-center">{{ kid.beaconId }}</td>
-            <td class="p-3 text-center">{{ kid.name }}</td>
-            <td class="p-3 text-center">{{ kid.parentName }}</td>
-            <td class="p-3 text-center">{{ kid.placeName }}</td>
+            <td class="p-3 text-center">{{ kid.deviceName }}</td>
+            <td class="p-3 text-center">{{ kid.parent.firstName }}</td>
+            <td class="p-3 text-center">{{ kid.schoolName }}</td>
             <td class="p-3 text-center">
               {{ kid.lastLat?.toFixed(6) || "-" }} |
               {{ kid.lastLng?.toFixed(6) || "-" }}
             </td>
 
             <td class="p-3 text-center">
-              <span
-                class="px-4 py-1 rounded-full text-white text-sm"
-                :class="kid.status === 'online' ? 'bg-green-500' : 'bg-red-400'"
-              >
+              <span class="px-4 py-1 rounded-full text-white text-sm"
+                :class="kid.status === 'online' ? 'bg-green-500' : 'bg-red-400'">
                 {{ kid.status === "online" ? "Active" : "Inactive" }}
               </span>
             </td>
@@ -293,58 +249,34 @@ onMounted(fetchKids);
 
       <!-- Pagination -->
       <div class="flex justify-end items-center p-4">
-        <button
-          class="text-color-main2 disabled:text-gray-600"
-          :disabled="currentPage === 1"
-          @click="goToPage(currentPage - 1)"
-        >
+        <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === 1"
+          @click="goToPage(currentPage - 1)">
           &lt; Previous
         </button>
 
         <div class="flex gap-2 px-8">
-          <button
-            v-for="page in pageNumbers"
-            :key="page + '-btn'"
-            class="px-3 py-1 rounded"
-            :disabled="page === '...'"
-            :class="
-              page === currentPage
+          <button v-for="page in pageNumbers" :key="page + '-btn'" class="px-3 py-1 rounded" :disabled="page === '...'"
+            :class="page === currentPage
                 ? 'bg-blue-500 text-white'
                 : page === '...'
-                ? 'bg-transparent text-gray-500 cursor-default'
-                : 'bg-white text-color-main2'
-            "
-            @click="goToPage(page)"
-          >
+                  ? 'bg-transparent text-gray-500 cursor-default'
+                  : 'bg-white text-color-main2'
+              " @click="goToPage(page)">
             {{ page }}
           </button>
         </div>
 
-        <button
-          class="text-color-main2 disabled:text-gray-600"
-          :disabled="currentPage === totalPages"
-          @click="goToPage(currentPage + 1)"
-        >
+        <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === totalPages"
+          @click="goToPage(currentPage + 1)">
           Next &gt;
         </button>
       </div>
     </div>
 
-    <AddDeviceModal
-      v-model="addDeviceModalOpen"
-      :schoolId="schoolId"
-      @created="handleCreated"
-    />
+    <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="handleCreated" />
 
-    <DeleteKidModal
-      v-model="deleteModalOpen"
-      :kid="selectedKid"
-      @deleted="handleDeleted"
-    />
-    <DeleteKidMultiModal
-      v-model="deleteMultiModalOpen"
-      :kids="selectedKidsForDelete"
-      @deleted="handleDeletedMulti"
-    />
+    <DeleteStudentModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
+    <DeleteStudentMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"
+      @deleted="handleDeletedMulti" />
   </div>
 </template>

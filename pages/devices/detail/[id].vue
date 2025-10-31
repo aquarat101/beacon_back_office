@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from 'vue-router'
-import DeleteKidModal from '~/components/DeleteKidModal.vue'
+import DeleteStudentModal from '~/components/DeleteStudentModal.vue'
 import { useAuthStore } from "~/stores/auth";
 
 const auth = useAuthStore();
@@ -304,7 +304,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <DeleteKidModal v-if="beacon" v-model="deleteModalOpen" :kid="{ id: beacon.id, name: beacon.name }"
+            <DeleteStudentModal v-if="beacon" v-model="deleteModalOpen" :kid="{ id: beacon.id, name: beacon.name }"
                 @deleted="handleDelete" />
 
         </div>

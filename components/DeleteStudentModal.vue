@@ -5,7 +5,7 @@ import { useAuthStore } from "~/stores/auth";
 const auth = useAuthStore();
 const props = defineProps({
   modelValue: Boolean,
-  kid: {
+  student: {
     type: Object,
     default: () => ({
       id: "",
@@ -28,15 +28,15 @@ function close() {
   isOpen.value = false;
 }
 
-// 🔹 ลบ kid จริง
+// 🔹 ลบ student จริง
 async function confirmDelete() {
-  if (!props.kid.id) {
-    console.error("Missing kid id");
+  if (!props.student.id) {
+    console.error("Missing student id");
     return;
   }
 
   try {
-    const res = await fetch(`${config.apiDomain}/kids/delete/${props.kid.id}`, {
+    const res = await fetch(`${config.apiDomain}/${schoolId}/student/${studentId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -47,16 +47,16 @@ async function confirmDelete() {
     const json = await res.json();
 
     if (res.ok) {
-      // console.log('✅ Deleted kid:', props.kid)
-      emit("deleted", props.kid);
+      // console.log('✅ Deleted student:', props.student)
+      emit("deleted", props.student);
       close();
     } else {
-      console.error("❌ Failed to delete kid:", json.message);
-      alert("Failed to delete kid: " + (json.message || "Unknown error"));
+      console.error("❌ Failed to delete student:", json.message);
+      alert("Failed to delete student: " + (json.message || "Unknown error"));
     }
   } catch (err) {
-    console.error("🔥 Error deleting kid:", err);
-    alert("Error deleting kid: " + err.message);
+    console.error("🔥 Error deleting student:", err);
+    alert("Error deleting student: " + err.message);
   }
 }
 </script>
@@ -67,9 +67,9 @@ async function confirmDelete() {
       <div class="flex gap-4 items-center">
         <img src="/images/trash_red.png" alt="trash" class="bg-red-100 w-16 h-16 p-2 rounded-full" />
         <div>
-          <p class="text-xl font-bold mb-1 mt-1">Delete "{{ kid.name }}"?</p>
+          <p class="text-xl font-bold mb-1 mt-1">Delete "{{ student.name }}"?</p>
           <p class="text-sm text-gray-600">
-            Are you sure you want to delete this kid from the system?
+            Are you sure you want to delete this student from the system?
           </p>
         </div>
       </div>
@@ -79,6 +79,7 @@ async function confirmDelete() {
           class="w-full px-4 py-2 rounded-lg border-2 border-blue-400 text-blue-500 font-normal hover:bg-blue-50">
           Cancel
         </button>
+        
         <button @click="confirmDelete"
           class="w-full px-4 py-2 rounded-lg bg-red-500 text-white font-normal hover:bg-red-600">
           Delete

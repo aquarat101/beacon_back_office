@@ -2,8 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddDeviceModal from '~/components/AddDeviceModal.vue'
-import DeleteKidModal from '~/components/DeleteKidModal.vue'
-import DeleteKidMultiModal from '~/components/DeleteKidMultiModal.vue'
+import DeleteStudentModal from '~/components/DeleteStudentModal.vue'
+import DeleteStudentMultiModal from '~/components/DeleteStudentMultiModal.vue'
 import { useAuthStore } from "~/stores/auth";
 
 const auth = useAuthStore();
@@ -293,8 +293,8 @@ onMounted(fetchKids)
 
         <AddDeviceModal v-model="addDeviceModalOpen" :school="school" @created="handleCreated" />
 
-        <DeleteKidModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
-        <DeleteKidMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"
+        <DeleteStudentModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
+        <DeleteStudentMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"
             @deleted="handleDeletedMulti" />
     </div>
 </template>

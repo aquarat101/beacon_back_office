@@ -14,7 +14,7 @@ const { public: config } = useRuntimeConfig();
 const form = ref({
   schoolId: props.schoolId,
   beaconId: "",
-  profileName: "",
+  deviceName: "",
   userId: "",
   status: "",
 });
@@ -24,18 +24,34 @@ watch(
   (newId) => {
     form.value.schoolId = newId;
   },
-  { immediate: true }
+  { immediate: true },
+
+  form.value = {
+    schoolId: props.schoolId,
+    beaconId: "",
+    deviceName: "",
+    userId: "",
+    status: "",
+  }
 );
 
 const isLoading = ref(false);
 
 function closeModal() {
   emit("update:modelValue", false);
+
+  form.value = {
+    schoolId: props.schoolId,
+    beaconId: "",
+    deviceName: "",
+    userId: "",
+    status: "",
+  }
 }
 
 async function AddDeviceModal() {
   // Validate required fields
-  if (!form.value.beaconId || !form.value.profileName || !form.value.userId) {
+  if (!form.value.beaconId || !form.value.deviceName || !form.value.userId) {
     alert("Please fill all required fields");
     return;
   }
@@ -44,7 +60,7 @@ async function AddDeviceModal() {
     isLoading.value = true;
 
     const resStudent = await fetch(
-      `${config.apiDomain}/schools/createStudent/${props.schoolId}/${form.value.userId}`,
+      `${config.apiDomain}/students/createStudent/${props.schoolId}/${form.value.userId}`,
       {
         method: "POST",
         headers: {
@@ -55,26 +71,26 @@ async function AddDeviceModal() {
       }
     );
 
-    const resKid = await fetch(
-      `${config.apiDomain}/kids/create/${form.value.userId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-        body: JSON.stringify(form.value),
-      }
-    );
+    // const resKid = await fetch(
+    //   `${config.apiDomain}/kids/create/${form.value.userId}`,
+    //   {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${auth.token}`,
+    //     },
+    //     body: JSON.stringify(form.value),
+    //   }
+    // );
 
     const studentData = await resStudent.json();
-    const kidData = await resKid.json();
+    // const kidData = await resKid.json();
 
-    if (studentData.success && kidData.success) {
-      emit("created", studentData, kidData);
+    if (studentData.success) {
+      emit("created", studentData);
       closeModal();
     } else {
-      alert(studentData.message || kidData.message || "Failed to create user");
+      alert(studentData.message || "Failed to create user");
     }
   } catch (err) {
     console.error("❌ Error creating user:", err);
@@ -118,7 +134,7 @@ async function AddDeviceModal() {
 
         <div>
           <label class="block text-sm font-medium mb-1">Device Name<span class="text-red-500">*</span></label>
-          <input v-model="form.profileName" type="text" placeholder="device name"
+          <input v-model="form.deviceName" type="text" placeholder="device name"
             class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
         </div>
 

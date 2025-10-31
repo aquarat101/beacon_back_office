@@ -1,4 +1,3 @@
-import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 
 export function useSchools(apiDomain) {

@@ -8,88 +8,24 @@ const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
-const userId = route.params.id
-const schoolId = route.query.schoolId
+const { selectedAvatar,form , schoolName , fetchUserById , getSchool , handleSave } = useSchoolUsers(
+  config.apiDomain
+);
 
-const form = ref({
-    id: "",
-    name: "",
-    email: "",
-    phoneNumber: "",
-    role: "",
-    school: "",
-    status: "Active",
-    avatar: "", // ✅ เพิ่ม avatar
-})
-
+  const avatars = [
+    "/image-avatars/1.png",
+    "/image-avatars/2.png",
+    "/image-avatars/3.png",
+    "/image-avatars/4.png",
+    "/image-avatars/5.png",
+    "/image-avatars/6.png",
+  ];
 const loading = ref(false)
 const schoolTypes = ["Piyo Piyo Elementary School", "Privi", "Chonburi"]
 const statusOptions = ["Active", "Inactive"]
 
 // ✅ avatar picker
-const avatars = [
-    '/image-avatars/1.png',
-    '/image-avatars/2.png',
-    '/image-avatars/3.png',
-    '/image-avatars/4.png',
-    '/image-avatars/5.png',
-    '/image-avatars/6.png'
-]
 const showAvatarPopup = ref(false)
-const selectedAvatar = ref('')
-
-// ✅ ดึงข้อมูล user ตาม id
-const fetchUser = async () => {
-    try {
-        loading.value = true
-        const response = await $fetch(`${config.apiDomain}/schoolUsers/getUser/${userId}`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${auth.token}`,
-            },
-        })
-        if (response.success) {
-            const user = response.data
-            form.value = {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                phoneNumber: user.phone_number || "",
-                role: user.role,
-                school: user.school,
-                status: user.status || "Active",
-                avatar: user.avatar || avatars[0], // ✅ เพิ่ม
-            }
-            selectedAvatar.value = form.value.avatar
-        } else {
-            alert("❌ User not found")
-            router.push("/schools")
-        }
-    } catch (error) {
-        console.error("Error fetching user:", error)
-        alert("🔥 Failed to load user data")
-        router.push("/schools")
-    } finally {
-        loading.value = false
-    }
-}
-
-const schoolName = ref()
-
-async function getSchool() {
-    try {
-        const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${auth.token}`,
-            },
-        });
-        const json = await res.json();
-        if (json.success) schoolName.value = json.data.schoolName;
-    } catch (err) {
-        console.error(err);
-    }
-}
 
 // ✅ Confirm avatar selection
 function confirmAvatar() {
@@ -98,44 +34,8 @@ function confirmAvatar() {
     showAvatarPopup.value = false
 }
 
-// ✅ บันทึกข้อมูล
-const handleSave = async () => {
-    try {
-        const response = await $fetch(`${config.apiDomain}/schools/updateSchoolUser/${form.value.id}`, {
-            method: 'PUT',
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${auth.token}`,
-            },
-            body: {
-                name: form.value.name,
-                email: form.value.email,
-                phone_number: form.value.phoneNumber,
-                role: form.value.role,
-                school: form.value.school,
-                status: form.value.status,
-                avatar: form.value.avatar, // ✅ ส่ง avatar ไปด้วย
-            }
-        })
-
-        if (response.success) {
-            alert("✅ Updated successfully!")
-            router.push(`/users/detail/${userId}`)
-        } else {
-            alert("❌ Failed to update user")
-        }
-    } catch (error) {
-        console.error("Update error:", error)
-        alert("🔥 Update failed")
-    }
-}
-
-const handleCancel = () => {
-    router.push("/schools")
-}
-
 onMounted(() => {
-    fetchUser()
+    fetchUserById()
     getSchool()
 })
 
@@ -208,7 +108,7 @@ onMounted(() => {
             </form>
 
             <div class="flex justify-end mt-6 gap-2">
-                <button type="button" @click="handleCancel"
+                <button type="button" @click="router.push('/schools')"
                     class="px-4 py-2 border rounded-lg bg-gray-100 hover:bg-gray-200">
                     Cancel
                 </button>

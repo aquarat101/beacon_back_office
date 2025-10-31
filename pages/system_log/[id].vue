@@ -1,51 +1,32 @@
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from 'vue-router'
-import DeleteSchoolModal from '~/components/DeleteSchoolModal.vue'
+import { useAuthStore } from "~/stores/auth";
 
-// route params
+const auth = useAuthStore();
+const { public: config } = useRuntimeConfig()
+
 const route = useRoute()
 const router = useRouter()
-const beaconId = route.params.id
 
-// mock data
-const beacon = ref({
-    id: beaconId,
-    name: "Piyo Chan",
-    parentName: "Tamayo Chan",
-    parentEmail: "tamayo@mail.com",
-    phoneNumber: "0821234567",
-    school: "Piyo Piyo Elementary School",
-    remark: "Worem ipsum dolor sit amet...",
-    status: "Active",
-    avatar: "/images/layout/logo.png"
-})
-
-// mock data: 90 รายการ location (System Log)
-const locations = Array.from({ length: 90 }, (_, i) => ({
-    id: i + 1,
-    datetime: new Date(2025, 7 - 1, (i % 28) + 1, i % 2 === 0 ? 18 : 7, 0), // 6PM / 7AM
-    log: i % 2 === 0 ? "Login to system" : "Viewed student profile",
-    user: i % 2 === 0 ? "Admin" : "Teacher A",
-    role: i % 2 === 0 ? "Administrator" : "Teacher"
-}))
+// state
+const logs = ref([])
 
 // pagination
 const currentPage = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(locations.length / pageSize))
+const totalPages = computed(() => Math.ceil(logs.value.length / pageSize))
 
-const paginatedLocations = computed(() => {
+const paginatedLogs = computed(() => {
+    if (!logs.value || !logs.value.length) return []
     const start = (currentPage.value - 1) * pageSize
-    return locations.slice(start, start + pageSize)
+    return logs.value.slice(start, start + pageSize)
 })
 
-// page numbers logic
 const pageNumbers = computed(() => {
     const pages = []
     const total = totalPages.value
     const current = currentPage.value
-
     if (total <= 5) {
         for (let i = 1; i <= total; i++) pages.push(i)
     } else {
@@ -57,7 +38,6 @@ const pageNumbers = computed(() => {
             pages.push(1, "...", current - 1, current, current + 1, "...", total)
         }
     }
-
     return pages
 })
 
@@ -69,15 +49,44 @@ function goToPage(page) {
 }
 
 function formatDate(date) {
-    return date.toLocaleDateString("en-US", {
+    return new Date(date).toLocaleDateString("en-US", {
         month: "numeric",
         day: "numeric",
         year: "numeric",
-    }) + ", " + date.toLocaleTimeString("en-US", {
+    }) + ", " + new Date(date).toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit"
     })
 }
+
+// fetch data from API
+async function fetchLogs() {
+    try {
+        const res = await fetch(`${config.apiDomain}/systemBof/`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+            },
+        })
+        const data = await res.json()
+        console.log("✅ Logs data:", data)
+
+        // ✅ แปลงข้อมูลจาก API ให้ตรงกับตาราง
+        logs.value = (data.logs || []).map((item, index) => ({
+            id: index + 1,
+            datetime: item.timestamp,
+            log: item.action,
+            user: `Super ${item.targetName} Chan`,  // ตัวอย่างใน UI
+            role: item.actorRole === "super_admin" ? "Super Admin" : item.actorRole
+        }))
+    } catch (error) {
+        console.error("Failed to fetch logs:", error)
+    }
+}
+
+onMounted(() => {
+    fetchLogs()
+})
 </script>
 
 <template>
@@ -85,47 +94,32 @@ function formatDate(date) {
         <!-- Page Title -->
         <h1 class="text-2xl font-bold mb-6">System Log</h1>
 
-        <!-- Search & Filters -->
-        <div class="rounded-xl mb-4 flex gap-3 items-center">
-            <div class="flex w-full">
-                <div class="relative w-full flex-1">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                        <img src="/images/search.png" class="w-4 h-4 text-gray-600" />
-                    </span>
-                    <input type="text" placeholder="Search" class="w-full border rounded-lg pl-10 pr-3 py-2" />
-                </div>
-            </div>
-
-
-            <input type="date" class="border rounded-lg px-3 py-2" placeholder="Start Date" />
-            <input type="date" class="border rounded-lg px-3 py-2" placeholder="End Date" />yyyyy
-
-            <button class="bg-blue-500 text-white px-4 py-2 rounded-lg">Search</button>
-        </div>
-
         <!-- Table -->
         <div class="bg-white rounded-xl shadow overflow-hidden">
             <table class="w-full border-collapse">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="pl-6 p-3 text-left">Date/Time</th>
-                        <th class="p-3 text-center">Log</th>
+                        <th class="pl-10 p-3 text-left">Date/Time</th>
+                        <th class="p-3 text-left">Log</th>
                         <th class="p-3 text-center">User</th>
-                        <th class="pr-6 p-3 text-right">Role</th>
+                        <th class="pr-10 p-3 text-right">Role</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="loc in paginatedLocations" :key="loc.id" class="border-t hover:bg-gray-50">
-                        <td class="pl-6 p-3 text-left">{{ formatDate(loc.datetime) }}</td>
-                        <td class="p-3 text-center">{{ loc.log }}</td>
-                        <td class="p-3 text-center">{{ loc.user }}</td>
-                        <td class="pr-6 p-3 text-right">{{ loc.role }}</td>
+                    <tr v-for="log in paginatedLogs" :key="log.id" class="border-t hover:bg-gray-50">
+                        <td class="pl-10 p-3 text-left">{{ formatDate(log.datetime) }}</td>
+                        <td class="p-3 text-left">{{ log.log }}</td>
+                        <td class="p-3 text-center">{{ log.user }}</td>
+                        <td class="pr-10 p-3 text-right capitalize">{{ log.role }}</td>
+                    </tr>
+                    <tr v-if="!logs.length">
+                        <td colspan="4" class="text-center text-gray-500 py-6">No logs found</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- Pagination -->
-            <div class="flex justify-end items-center p-4">
+            <div v-if="logs.length" class="flex justify-end items-center p-4">
                 <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === 1"
                     @click="goToPage(currentPage - 1)">
                     &lt; Previous

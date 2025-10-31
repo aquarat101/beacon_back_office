@@ -1,17 +1,9 @@
 <script setup>
-import { ref, onMounted } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { useAuthStore } from "~/stores/auth";
-
-const auth = useAuthStore();
-const { public: config } = useRuntimeConfig()
-const route = useRoute()
 const router = useRouter()
-
-const { selectedAvatar,form , schoolName , fetchUserById , getSchool , handleSave } = useSchoolUsers(
+const { public: config } = useRuntimeConfig()
+const { selectedAvatar,form , isLoading , fetchUserById , getSchool , handleSave , confirmAvatar } = useSchoolUsers(
   config.apiDomain
 );
-
   const avatars = [
     "/image-avatars/1.png",
     "/image-avatars/2.png",
@@ -20,19 +12,9 @@ const { selectedAvatar,form , schoolName , fetchUserById , getSchool , handleSav
     "/image-avatars/5.png",
     "/image-avatars/6.png",
   ];
-const loading = ref(false)
-const schoolTypes = ["Piyo Piyo Elementary School", "Privi", "Chonburi"]
+// const schoolTypes = ["Piyo Piyo Elementary School", "Privi", "Chonburi"]
 const statusOptions = ["Active", "Inactive"]
-
-// ✅ avatar picker
 const showAvatarPopup = ref(false)
-
-// ✅ Confirm avatar selection
-function confirmAvatar() {
-    if (!selectedAvatar.value) return
-    form.value.avatar = selectedAvatar.value
-    showAvatarPopup.value = false
-}
 
 onMounted(() => {
     fetchUserById()
@@ -46,7 +28,7 @@ onMounted(() => {
         <h1 class="text-2xl font-bold mb-4">Edit User Detail</h1>
         <button @click="router.back()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
 
-        <div v-if="loading" class="text-center py-10 text-gray-500">Loading...</div>
+        <div v-if="isLoading" class="text-center py-10 text-gray-500">Loading...</div>
 
         <div v-else class="bg-white shadow rounded-xl p-6">
             <!-- ✅ ส่วน Avatar -->
@@ -93,7 +75,7 @@ onMounted(() => {
 
                 <div>
                     <label class="block text-sm font-medium mb-1">School</label>
-                    <input v-model="schoolName" disabled
+                    <input v-model="form.school" disabled
                         class="w-full border rounded-lg p-2 bg-gray-100 text-gray-400" />
 
                     </input>

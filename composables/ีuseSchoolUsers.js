@@ -21,6 +21,14 @@ export function useSchoolUsers(apiDomain) {
     status: "Active",
     avatar: "",
   });
+  const avatars = [
+    "/image-avatars/1.png",
+    "/image-avatars/2.png",
+    "/image-avatars/3.png",
+    "/image-avatars/4.png",
+    "/image-avatars/5.png",
+    "/image-avatars/6.png",
+  ];
 
   async function fetchSchoolUsers() {
     try {
@@ -80,7 +88,7 @@ export function useSchoolUsers(apiDomain) {
           email: user.email,
           phoneNumber: user.phone_number || "",
           role: user.role,
-          school: user.school,
+          school: user.schoolName,
           status: user.status || "Active",
           avatar: user.avatar || avatars[0],
         };
@@ -99,7 +107,6 @@ export function useSchoolUsers(apiDomain) {
   }
 
   async function getSchool() {
-
     try {
       const res = await fetch(`${apiDomain}/schools/get/${schoolId}`, {
         headers: {
@@ -129,7 +136,7 @@ export function useSchoolUsers(apiDomain) {
             email: form.value.email,
             phone_number: form.value.phoneNumber,
             role: form.value.role,
-            school: form.value.school,
+            school: form.value.schoolName,
             status: form.value.status,
             avatar: form.value.avatar,
           },
@@ -148,6 +155,13 @@ export function useSchoolUsers(apiDomain) {
     }
   }
 
+  function confirmAvatar() {
+    if (!selectedAvatar.value) return
+    form.value.avatar = selectedAvatar.value
+    showAvatarPopup.value = false
+}
+
+
   return {
     schoolName,
     form,
@@ -161,5 +175,6 @@ export function useSchoolUsers(apiDomain) {
     fetchUserById,
     getSchool,
     handleSave,
+    confirmAvatar
   };
 }

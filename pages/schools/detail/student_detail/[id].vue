@@ -68,6 +68,12 @@ function handleDelete() {
     // router.push("/schools/detail/student_detail")
 }
 
+function goBack() {
+    router.push({
+        path: `/schools/detail/${schoolId}`,
+        query: { tab: 'students' }
+    })
+}
 
 onMounted(() => {
     fetchKid()
@@ -79,7 +85,7 @@ onMounted(() => {
     <div class="p-6">
         <h1 class="text-2xl font-bold mb-4">School Detail</h1>
 
-        <button @click="router.back()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
+        <button @click="goBack()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
 
         <div v-if="kid" class="bg-white p-6 rounded-xl shadow">
             <div class="flex items-center justify-between mb-6">

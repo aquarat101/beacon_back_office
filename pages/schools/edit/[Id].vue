@@ -109,12 +109,21 @@ const handleCancel = () => {
 onMounted(() => {
     fetchSchool()
 })
+
+function goBack() {
+    router.push({
+        path: `/schools/detail/${schoolId}`,
+        query: {
+            tab: "info"
+        }
+    })
+}
 </script>
 
 <template>
     <div class="p-6">
         <h1 class="text-2xl font-bold mb-4">Edit School Detail</h1>
-        <button @click="router.back()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
+        <button @click="goBack()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
 
         <div v-if="loading" class="text-center text-gray-500 py-20">Loading school details...</div>
 

@@ -9,6 +9,7 @@ const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 const staffId = route.params.id
+const schoolId = route.query.schoolId
 
 const staff = ref(null)
 const deleteModalOpen = ref(false)
@@ -17,7 +18,7 @@ const isLoading = ref(true)
 // ✅ โหลดข้อมูลจาก API: /schools/getUser/:id
 async function getSchoolUser() {
     try {
-        const res = await fetch(`${config.apiDomain}/schools/getUser/${staffId}`, {
+        const res = await fetch(`${config.apiDomain}/schoolUsers/getUser/${staffId}`, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${auth.token}`,
@@ -46,13 +47,22 @@ function handleDeleted() {
     router.push('/schools/detail') // กลับหน้า list
 }
 
+function goBack() {
+    router.push({
+        path: `/schools/detail/${schoolId}`,
+        query: {
+            tab: "staffs"
+        }
+    })
+}
+
 </script>
 
 <template>
     <div class="p-6">
         <h1 class="text-2xl font-bold mb-4">School Detail</h1>
 
-        <button @click="router.back()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
+        <button @click="goBack()" class="text-blue-500 mb-4 text-lg">&lt; Back</button>
 
         <!-- กำลังโหลด -->
         <div v-if="isLoading" class="text-gray-500">Loading...</div>
@@ -73,8 +83,12 @@ function handleDeleted() {
                     <div class="text-sm text-gray-500 mt-1">staff ID: {{ staff.id }}</div>
                 </div>
 
-                <button class="flex bg-blue-500 text-white px-4 py-2 rounded"
-                    @click="$router.push(`/schools/detail/staff_edit/${staff.id}`)">
+                <button class="flex bg-blue-500 text-white px-4 py-2 rounded" @click="$router.push({
+                    path: `/schools/detail/staff_edit/${staff.id}`,
+                    query: {
+                        schoolId: schoolId
+                    }
+                })">
                     <img src="/images/edit.png" alt="edit" class="w-5 h-5 mr-1 mt-0.5" />
                     Edit
                 </button>
@@ -87,7 +101,7 @@ function handleDeleted() {
                     <p class="mt-2"><strong>Email</strong><br />{{ staff.email }}</p>
                     <p class="mt-2"><strong>Phone Number</strong><br />{{ staff.phone_number }}</p>
                     <p class="mt-2"><strong>Role</strong><br />{{ staff.role }}</p>
-                    <p class="mt-2"><strong>School</strong><br />{{ staff.school }}</p>
+                    <p class="mt-2"><strong>School</strong><br />{{ staff.schoolName }}</p>
 
                     <button @click="deleteModalOpen = true" class="text-blue-500 font-bold mt-4 underline">
                         Delete Staff

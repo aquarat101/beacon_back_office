@@ -129,16 +129,9 @@ onMounted(() => {
 <template>
   <div>
     <div class="p-6 relative">
-      <div
-        v-if="isLoading"
-        class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-      >
-        <div
-          class="bg-white rounded-lg p-6 flex flex-col items-center shadow-lg w-64"
-        >
-          <div
-            class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mb-3 animate-spin"
-          ></div>
+      <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 flex flex-col items-center shadow-lg w-64">
+          <div class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mb-3 animate-spin"></div>
           <p class="text-gray-700 text-center font-medium">
             Loading schools...
           </p>
@@ -150,44 +143,26 @@ onMounted(() => {
       <!-- Search & Filters -->
       <div class="bg-white p-4 rounded-xl shadow mb-4">
         <div class="flex flex-wrap gap-3 items-center">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by name"
-            class="border rounded-lg px-3 py-2 flex-1"
-          />
+          <input v-model="searchQuery" type="text" placeholder="Search by name"
+            class="border rounded-lg px-3 py-2 flex-1" />
 
-          <button
-            @click="handleSearch"
-            class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
+          <button @click="handleSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
             Search
           </button>
-          <button
-            @click="handleClearSearch"
-            class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
+          <button @click="handleClearSearch" class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
             Clear
           </button>
         </div>
 
         <div class="flex gap-3 mt-4">
-          <button
-            @click="isAddSchoolAdminModalOpen = true"
-            class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg"
-          >
-            <img
-              src="/images/person_plus.png"
-              alt="person_plus"
-              class="w-4 h-4"
-            />
+          <button @click="isAddSchoolAdminModalOpen = true"
+            class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
+            <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4" />
             Add School Admin
           </button>
 
-          <button
-            @click="confirmDeleteSelected"
-            class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg"
-          >
+          <button @click="confirmDeleteSelected"
+            class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
             <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
             Delete ({{ selectedUsers.length }})
           </button>
@@ -211,39 +186,25 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="staff in paginatedStaffs"
-              :key="staff.id"
-              class="border-t hover:bg-gray-50"
-            >
+            <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
               <td class="p-3">
-                <input
-                  type="checkbox"
-                  :checked="selectedUsers.includes(staff.id)"
-                  @change="toggleUserSelection(staff.id)"
-                />
+                <input type="checkbox" :checked="selectedUsers.includes(staff.id)"
+                  @change="toggleUserSelection(staff.id)" />
               </td>
 
               <td class="p-3 text-center">
                 <div class="flex justify-center gap-2">
-                  <button
-                    class="bg-color-main3 text-white px-2 py-1 rounded"
-                    @click="$router.push(`/users/detail/${staff.id}`)"
-                  >
+                  <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                    @click="$router.push(`/users/detail/${staff.id}`)">
                     <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                   </button>
 
-                  <button
-                    class="bg-color-main3 text-white px-2 py-1 rounded"
-                    @click="$router.push(`/users/edit/${staff.id}`)"
-                  >
+                  <button class="bg-color-main3 text-white px-2 py-1 rounded"
+                    @click="$router.push(`/users/edit/${staff.id}`)">
                     <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                   </button>
 
-                  <button
-                    class="bg-color-main-red text-white px-2 py-1 rounded"
-                    @click="confirmDelete(staff)"
-                  >
+                  <button class="bg-color-main-red text-white px-2 py-1 rounded" @click="confirmDelete(staff)">
                     <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                   </button>
                 </div>
@@ -255,16 +216,12 @@ onMounted(() => {
               <td class="p-3 text-center">{{ staff.role }}</td>
 
               <td class="p-3 text-center">
-                <span
-                  class="px-4 py-1 rounded-full text-sm"
-                  :class="
-                    staff.status === 'Active'
-                      ? 'bg-green-500 text-white'
-                      : staff.status === 'Pending'
+                <span class="px-4 py-1 rounded-full text-sm" :class="staff.status === 'Active'
+                    ? 'bg-green-500 text-white'
+                    : staff.status === 'Pending'
                       ? 'bg-color-main-yellow text-black'
                       : 'bg-color-main-red text-white'
-                  "
-                >
+                  ">
                   {{ staff.status }}
                 </span>
               </td>
@@ -274,61 +231,36 @@ onMounted(() => {
 
         <!-- Pagination -->
         <div class="flex justify-end items-center p-4">
-          <button
-            class="text-color-main2 disabled:text-gray-600"
-            :disabled="currentPage === 1"
-            @click="goToPage(currentPage - 1)"
-          >
+          <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)">
             &lt; Previous
           </button>
 
           <div class="flex gap-2 px-8">
-            <button
-              v-for="page in pageNumbers"
-              :key="page + '-btn'"
-              class="px-3 py-1 rounded"
-              :disabled="page === '...'"
-              :class="
-                page === currentPage
+            <button v-for="page in pageNumbers" :key="page + '-btn'" class="px-3 py-1 rounded"
+              :disabled="page === '...'" :class="page === currentPage
                   ? 'bg-blue-500 text-white'
                   : page === '...'
-                  ? 'bg-transparent text-gray-500 cursor-default'
-                  : 'bg-white text-color-main2'
-              "
-              @click="goToPage(page)"
-            >
+                    ? 'bg-transparent text-gray-500 cursor-default'
+                    : 'bg-white text-color-main2'
+                " @click="goToPage(page)">
               {{ page }}
             </button>
           </div>
 
-          <button
-            class="text-color-main2 disabled:text-gray-600"
-            :disabled="currentPage === totalPages"
-            @click="goToPage(currentPage + 1)"
-          >
+          <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)">
             Next &gt;
           </button>
         </div>
       </div>
     </div>
 
-    <CreateSchoolModal
-      v-model="isCreateSchoolModalOpen"
-      @created="fetchSchoolUsers"
-    />
-    <AddSchoolAdminModal
-      v-model="isAddSchoolAdminModalOpen"
-      @created="fetchSchoolUsers"
-    />
-    <DeleteSchoolUserModal
-      v-model="isDeleteModalOpen"
-      :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }"
-      @deleted="fetchSchoolUsers"
-    />
-    <DeleteSchoolUserMultiModal
-      v-model="deleteMultiModalOpen"
-      :schoolUsers="selectedUsersForDelete"
-      @deleted="fetchSchoolUsers"
-    />
+    <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="fetchSchoolUsers" />
+    <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @created="fetchSchoolUsers" />
+    <DeleteSchoolUserModal v-model="isDeleteModalOpen"
+      :schoolUser="{ id: selectedSchoolUserId, name: selectedSchoolUserName }" @deleted="fetchSchoolUsers" />
+    <DeleteSchoolUserMultiModal v-model="deleteMultiModalOpen" :schoolUsers="selectedUsersForDelete"
+      @deleted="fetchSchoolUsers" />
   </div>
 </template>

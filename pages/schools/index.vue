@@ -1,5 +1,4 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue";
 import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue";
 import DeleteSchoolModal from "~~/components/DeleteSchoolModal.vue";
@@ -27,21 +26,6 @@ const activeFilterType = ref("");
 const activeFilterLevel = ref("");
 const activeFilterStatus = ref("");
 
-function handleCreated(data) {
-  console.log("🎉 School created:", data);
-  fetchSchools();
-}
-
-function handleAdded(data) {
-  console.log("🎉 School added:", data);
-}
-
-function handleDeleted(deletedSchool) {
-  console.log("Deleted:", deletedSchool);
-  fetchSchools();
-}
-
-// Load on mounted
 onMounted(fetchSchools);
 
 // Filtered schools based on **active filters**
@@ -105,6 +89,15 @@ function handleSearch() {
   activeFilterLevel.value = filterLevelInput.value;
   activeFilterStatus.value = filterStatusInput.value;
   currentPage.value = 1;
+}
+
+function handleClearSearch() {
+  activeSearchQuery.value = searchQueryInput.value = "";
+  activeFilterType.value = filterTypeInput.value = "";
+  activeFilterLevel.value = filterLevelInput.value = "";
+  activeFilterStatus.value = filterStatusInput.value = "";
+  currentPage.value = 1;
+  fetchSchools();
 }
 
 // เปิด modal delete พร้อมส่ง school
@@ -179,6 +172,12 @@ function confirmDelete(school) {
           class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
           Search
+        </button>
+        <button
+          @click="handleClearSearch"
+          class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+        >
+          Clear
         </button>
       </div>
 
@@ -311,24 +310,24 @@ function confirmDelete(school) {
 
     <CreateSchoolModal
       v-model="isCreateSchoolModalOpen"
-      @created="handleCreated"
+      @created="fetchSchools"
     />
     <AddSchoolAdminModal
       v-model="isAddSchoolAdminModalOpen"
-      @added="handleAdded"
+      @added="fetchSchools"
     />
     <DeleteSchoolModal
       v-model="isDeleteModalOpen"
       :school="{ id: selectedSchoolId, schoolName: selectedSchoolName }"
-      @deleted="handleDeleted"
+      @deleted="fetchSchools"
     />
   </div>
 </template>
 
 <style scoped>
-.loader {
+/* .loader {
   border: 4px solid #f3f3f3;
   border-top-color: #3b82f6;
   border-radius: 50%;
-}
+} */
 </style>

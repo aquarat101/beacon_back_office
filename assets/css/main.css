@@ -21,3 +21,9 @@
 .bg-color-main-yellow {
     background-color: #FFE604;
 }
+
+ิ.loader {
+  border: 4px solid #f3f3f3;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+}

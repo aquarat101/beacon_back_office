@@ -1,10 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
 import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue";
 import CreateSchoolModal from "~/components/CreateSchoolModal.vue";
 import DeleteSchoolModal from "~/components/DeleteSchoolModal.vue";
+import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";
 import DeleteSchoolUserMultiModal from "~/components/DeleteSchoolUserMultiModal.vue";
+import DeleteStudentModal from "~/components/DeleteStudentModal.vue";
+import DeleteStudentMultiModal from "~/components/DeleteStudentMultiModal.vue";
+
 import { useAuthStore } from "~/stores/auth";
 import { useAuth } from "~/composables/useAuth";
 import { ROLES } from "~/constants/role";
@@ -17,16 +22,20 @@ const userStorage = useAuth();
 const route = useRoute();
 const router = useRouter();
 const schoolId = route.params.id;
-const role = ref('role')
+const tab = route.query.tab || 'info'
+const role = ref(true)
 
 // ---------------- Modal ----------------
 const deleteModalOpen = ref(false);
 const isCreateSchoolModalOpen = ref(false);
 const isAddSchoolAdminModalOpen = ref(false);
-const isDeleteModalOpen = ref(false);
+const isDeleteSchoolUserModalOpen = ref(false);
+const isDeleteSchoolUserMultiModalOpen = ref(false);
+const isDeleteStudentModalOpen = ref(false)
+const isDeleteStudentMultiModalOpen = ref(false)
 
 // ---------------- Tabs ----------------
-const currentTab = ref("info");
+const currentTab = ref(tab);
 
 // ---------------- Data ----------------
 const school = ref(null);
@@ -58,7 +67,7 @@ const pageSize = 10;
 // ---------------- Fetch API ----------------
 const isLoading = ref(false);
 
-async function getSchool(id) {
+async function getSchool() {
   isLoading.value = true;
   try {
     const res = await fetch(`${config.apiDomain}/schools/get/${schoolId}`, {
@@ -76,10 +85,10 @@ async function getSchool(id) {
   }
 }
 
-async function getSchoolStaffs() {
+async function fetchSchoolStaffs() {
   isLoading.value = true;
   try {
-    const res = await fetch(`${config.apiDomain}/schools/getAllUser`, {
+    const res = await fetch(`${config.apiDomain}/schoolUsers/getAllUser`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${auth.token}`,
@@ -94,49 +103,24 @@ async function getSchoolStaffs() {
   }
 }
 
-async function getStudents() {
-  isLoading.value = true;
+async function fetchStudents() {
   try {
     const res = await fetch(
-      `${config.apiDomain}/students/getAllStudent/${schoolId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.token}`,
-      },
-    }
+      `${config.apiDomain}/students/getAllStudent/${schoolId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+      }
     );
     const json = await res.json();
     if (!json.success) return console.warn("No students found");
-    const studentRefs = json.data;
-    if (studentRefs.length === 0) {
-      students.value = [];
-      return;
-    }
+    students.value = json.data;
+    console.log(students.value)
 
-    const kidIds = studentRefs.map((s) => s.kidId);
-    const kidsRes = await fetch(`${config.apiDomain}/kids/getMultiKid`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.token}`,
-      }, body: JSON.stringify({ ids: kidIds }),
-    });
-    const kidsJson = await kidsRes.json();
-    if (!kidsJson.success) return console.warn("No kids data found");
-
-    students.value = kidsJson.data.map((kid) => ({
-      id: kid.id,
-      serialNumber: kid.beaconId,
-      deviceName: kid.name,
-      school: school.value.schoolName,
-      lat: kid.lastLat || "-",
-      lng: kid.lastLng || "-",
-      status: kid.status || "Active",
-    }));
   } catch (err) {
     console.error("🔥 Error fetching students:", err);
-  } finally {
-    isLoading.value = false;
   }
 }
 
@@ -203,19 +187,24 @@ function toggleStudentSelection(id) {
 
 // ---------------- Delete ----------------
 function confirmDeleteSelected() {
-  if (
-    (currentTab.value === "staff" && selectedStaffs.value.length === 0) ||
-    (currentTab.value === "students" && selectedStudents.value.length === 0)
-  )
-    return;
-  isDeleteModalOpen.value = true;
+  if (currentTab.value === "staffs") {
+    if (selectedStaffs.value.length === 0) return;
+    isDeleteSchoolUserMultiModalOpen.value = true; // ✅ ลบ staff หลายคน
+  } else if (currentTab.value === "students") {
+    if (selectedStudents.value.length === 0) return;
+    isDeleteStudentMultiModalOpen.value = true; // ✅ ลบ student หลายคน
+  }
 }
 
 function handleDeleted() {
-  if (currentTab.value === "staff") selectedStaffs.value = [];
-  if (currentTab.value === "students") selectedStudents.value = [];
-  getSchoolStaffs();
-  getStudents();
+  if (currentTab.value === "staffs") {
+    selectedStaffs.value = [];
+    fetchSchoolStaffs();
+  }
+  if (currentTab.value === "students") {
+    selectedStudents.value = [];
+    fetchStudents();
+  }
 }
 
 // ---------------- Filters ----------------
@@ -257,7 +246,7 @@ const filteredStudents = computed(() => {
 // ---------------- Pagination Logic ----------------
 const totalPages = computed(() =>
   Math.ceil(
-    (currentTab.value === "staff"
+    (currentTab.value === "staffs"
       ? filteredStaffs.value.length
       : filteredStudents.value.length) / pageSize
   )
@@ -325,9 +314,9 @@ if (userStorage.user.value.role === ROLES.SCHOOL_ADMIN) {
 
 // ---------------- Load ----------------
 onMounted(async () => {
-  await getSchoolStaffs();
-  await getSchool(schoolId);
-  await getStudents();
+  await fetchSchoolStaffs();
+  await getSchool();
+  await fetchStudents();
 
 });
 </script>
@@ -345,7 +334,7 @@ onMounted(async () => {
     <!-- Back button -->
     <h1 class="text-2xl font-bold mb-4">School Detail</h1>
 
-    <button v-if="role" @click="router.back()" class="text-blue-500 mb-4 text-lg">
+    <button v-if="role" @click="router.push('/schools')" class="text-blue-500 mb-4 text-lg">
       &lt; Back
     </button>
 
@@ -355,10 +344,12 @@ onMounted(async () => {
         " @click="currentTab = 'info'" class="px-4">
         Information Detail
       </button>
-      <button :class="currentTab === 'staff' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
-        " @click="currentTab = 'staff'" class="px-4">
+
+      <button :class="currentTab === 'staffs' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
+        " @click="currentTab = 'staffs'" class="px-4">
         Staffs list
       </button>
+
       <button :class="currentTab === 'students' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
         " @click="currentTab = 'students'" class="px-4">
         Students list
@@ -433,8 +424,10 @@ onMounted(async () => {
       </div>
     </div>
 
+    <DeleteSchoolModal v-model="deleteModalOpen" :school="school" @deleted="handleDelete" />
+
     <!-- Staffs tab -->
-    <div v-if="currentTab === 'staff' && !isLoading" class="bg-white p-6 rounded-xl shadow">
+    <div v-if="currentTab === 'staffs' && !isLoading" class="bg-white p-6 rounded-xl shadow">
       <div class="">
         <!-- Page Title -->
         <div>
@@ -482,7 +475,7 @@ onMounted(async () => {
               class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
               <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
               Delete ({{
-                currentTab === "staff"
+                currentTab === "staffs"
                   ? selectedStaffs.length
                   : selectedStudents.length
               }})
@@ -517,18 +510,29 @@ onMounted(async () => {
                 <td class="p-3 text-center">
                   <div class="flex justify-center gap-2">
                     <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="
-                      $router.push(`/schools/detail/staff_detail/${staff.id}`)
+                      $router.push({
+                        path: `/schools/detail/staff_detail/${staff.id}`,
+                        query: {
+                          schoolId: schoolId
+                        }
+                      })
                       ">
                       <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                     </button>
 
                     <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="
-                      $router.push(`/schools/detail/staff_edit/${staff.id}`)
+                      $router.push({
+                        path: `/schools/detail/staff_edit/${staff.id}`,
+                        query: {
+                          schoolId: schoolId
+                        }
+                      })
                       ">
                       <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                     </button>
 
-                    <button class="bg-color-main-red text-white px-2 py-1 rounded" @click="isDeleteModalOpen = true">
+                    <button class="bg-color-main-red text-white px-2 py-1 rounded"
+                      @click="isDeleteSchoolUserModalOpen = true">
                       <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                     </button>
                   </div>
@@ -580,9 +584,12 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- ✅ Staff Modals -->
       <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
       <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
-      <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
+      <DeleteSchoolUserModal v-model="isDeleteSchoolUserModalOpen" @deleted="handleDeleted" />
+      <DeleteSchoolUserMultiModal v-model="isDeleteSchoolUserMultiModalOpen" @deleted="handleDeleted" />
+
     </div>
 
     <!-- Students tab -->
@@ -621,7 +628,7 @@ onMounted(async () => {
               class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
               <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
               Delete ({{
-                currentTab === "staff"
+                currentTab === "staffs"
                   ? selectedStaffs.length
                   : selectedStudents.length
               }})
@@ -666,7 +673,8 @@ onMounted(async () => {
                       ">
                       <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                     </button>
-                    <button class="bg-color-main-red text-white px-2 py-1 rounded" @click="isDeleteModalOpen = true">
+                    <button class="bg-color-main-red text-white px-2 py-1 rounded"
+                      @click="isDeleteStudentModalOpen = true">
                       <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
                     </button>
                   </div>
@@ -718,13 +726,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-      <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
-      <DeleteSchoolModal v-model="isDeleteModalOpen" @deleted="handleDeleted" />
+      <!-- ✅ Student Modals -->
+      <DeleteStudentModal v-model="isDeleteStudentModalOpen" @deleted="handleDeleted" />
+      <DeleteStudentMultiModal v-model="isDeleteStudentMultiModalOpen" @deleted="handleDeleted" />
     </div>
 
     <!-- Delete modal -->
-    <DeleteSchoolModal v-model="deleteModalOpen" :school="school" @deleted="handleDelete" />
-    <DeleteSchoolUserMultiModal v-model="isDeleteModalOpen" :schoolUsers="selectedUsers" @deleted="handleDeleted" />
+    <DeleteSchoolUserMultiModal v-model="isDeleteSchoolUserMultiModalOpen" :schoolUsers="selectedUsers"
+      @deleted="handleDeleted" />
   </div>
 </template>

@@ -2,7 +2,7 @@
 import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";
 
 const { public: config } = useRuntimeConfig();
-const { user, schoolId, isLoading, fetchUser } = useSchoolUsers(
+const { errorMessage , user, schoolId, isLoading, fetchUser } = useSchoolUsers(
   config.apiDomain
 );
 const router = useRouter();

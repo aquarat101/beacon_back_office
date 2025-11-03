@@ -1,16 +1,18 @@
 import { useAuthStore } from "~/stores/auth";
-
+import { useApi } from "~/composables/useApiFire";
 export function useSchoolUsers(apiDomain) {
+  const { useApiFire } = useApi();
   const route = useRoute();
   const router = useRouter();
   const auth = useAuthStore();
   const userId = route.params.id;
-  const schoolId = route.query.schoolId;
+  const schoolId = route.params.id;
   const staffs = ref([]);
   const isLoading = ref(false);
   const user = ref(null);
   const selectedAvatar = ref("");
   const schoolName = ref();
+  const errorMessage = ref();
   const form = ref({
     id: "",
     name: "",
@@ -32,56 +34,34 @@ export function useSchoolUsers(apiDomain) {
 
   async function fetchSchoolUsers() {
     try {
-      isLoading.value = true;
-      const res = await fetch(`${apiDomain}/schoolUsers/getAllUser`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-      });
-      if (!res.ok) throw new Error("Failed to fetch school users");
-      const data = await res.json();
-      if (data.success) staffs.value = data.data;
+      const res = await useApiFire("/schoolUsers/getAllUser");
+      if (res) {
+        staffs.value = res.data || null;
+      }
     } catch (err) {
-      console.error("❌ Fetch error:", err);
-    } finally {
-      isLoading.value = false;
+      console.error("❌ Fetch school users failed:", err);
     }
   }
 
   async function fetchUser() {
     try {
-      const res = await fetch(`${apiDomain}/schoolUsers/getUser/${userId}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      user.value = data.data || null;
-      console.log(user.value);
+      const res = await useApiFire(`/schoolUsers/getUser/${userId}`);
+
+      if (res) {
+        user.value = res.data || null;
+      }
     } catch (err) {
       console.error(err);
+      errorMessage.value = err.message;
     } finally {
-      isLoading.value = false;
     }
   }
 
   async function fetchUserById() {
     try {
-      isLoading.value = true;
-      const response = await $fetch(
-        `${apiDomain}/schoolUsers/getUser/${userId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.token}`,
-          },
-        }
-      );
-      if (response.success) {
-        const user = response.data;
+      const res = await useApiFire(`/schoolUsers/getUser/${userId}`);
+      if (res) {
+        const user = res.data;
         form.value = {
           id: user.id,
           name: user.name,
@@ -108,14 +88,8 @@ export function useSchoolUsers(apiDomain) {
 
   async function getSchool() {
     try {
-      const res = await fetch(`${apiDomain}/schools/get/${schoolId}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-      });
-      const json = await res.json();
-      if (json.success) schoolName.value = json.data.schoolName;
+      const res = await useApiFire(`/schools/get/${schoolId}`);
+      if (res) schoolName.value = json.data.schoolName;
     } catch (err) {
       console.error(err);
     }
@@ -123,14 +97,10 @@ export function useSchoolUsers(apiDomain) {
 
   async function handleSave() {
     try {
-      const response = await $fetch(
-        `${apiDomain}/schoolUsers/updateSchoolUser/${form.value.id}`,
+      const res = await useApiFire(
+        `/schoolUsers/updateSchoolUser/${form.value.id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.token}`,
-          },
           body: {
             name: form.value.name,
             email: form.value.email,
@@ -143,7 +113,7 @@ export function useSchoolUsers(apiDomain) {
         }
       );
 
-      if (response.success) {
+      if (res) {
         alert("✅ Updated successfully!");
         router.push(`/users/detail/${userId}`);
       } else {
@@ -156,13 +126,13 @@ export function useSchoolUsers(apiDomain) {
   }
 
   function confirmAvatar() {
-    if (!selectedAvatar.value) return
-    form.value.avatar = selectedAvatar.value
-    showAvatarPopup.value = false
-}
-
+    if (!selectedAvatar.value) return;
+    form.value.avatar = selectedAvatar.value;
+    showAvatarPopup.value = false;
+  }
 
   return {
+    errorMessage,
     schoolName,
     form,
     schoolId,
@@ -175,6 +145,6 @@ export function useSchoolUsers(apiDomain) {
     fetchUserById,
     getSchool,
     handleSave,
-    confirmAvatar
+    confirmAvatar,
   };
 }

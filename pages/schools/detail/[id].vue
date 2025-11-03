@@ -40,6 +40,7 @@ const currentTab = ref(tab);
 // ---------------- Data ----------------
 const school = ref(null);
 const staffs = ref([]);
+const staffsNum = ref("");
 const students = ref([]);
 
 // ---------------- Staff Filter Inputs ----------------
@@ -96,6 +97,7 @@ async function fetchSchoolStaffs() {
     });
     const json = await res.json();
     if (json.success) staffs.value = json.data || [];
+    staffsNum.value = staffs.value.length
   } catch (err) {
     console.error(err);
   } finally {
@@ -435,7 +437,7 @@ onMounted(async () => {
             <h2 class="text-xl font-bold">Staff list</h2>
 
             <div class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm">
-              0123
+              {{ staffsNum }} 
             </div>
           </div>
         </div>
@@ -601,7 +603,7 @@ onMounted(async () => {
             <h2 class="text-xl font-bold">Students list</h2>
 
             <div class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm">
-              0123
+              <!-- {{staffs?.length}}  -->
             </div>
           </div>
         </div>

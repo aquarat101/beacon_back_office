@@ -3,10 +3,14 @@ import AddDeviceModal from "~/components/AddDeviceModal.vue";
 import DeleteStudentModal from "~/components/DeleteStudentModal.vue";
 import DeleteStudentMultiModal from "~/components/DeleteStudentMultiModal.vue";
 import { useAuthStore } from "~/stores/auth";
+import { ROLES } from "~/constants/role";
+
+
 
 const { public: config } = useRuntimeConfig();
 const { kids, fetchKids } = useDevices(config.apiDomain);
 const auth = useAuthStore();
+const role = auth.user.role
 const route = useRoute();
 const router = useRouter();
 
@@ -24,6 +28,10 @@ const activeSearchQuery = ref("");
 
 function handleSearch() {
   activeSearchQuery.value = searchQueryInput.value;
+  currentPage.value = 1;
+}
+function handleClearSearch() {
+  activeSearchQuery.value = searchQueryInput.value = "";
   currentPage.value = 1;
 }
 
@@ -117,7 +125,7 @@ function handleDeleted(kid) {
 }
 
 onMounted(() => {
-  fetchKids;
+  fetchKids();
 });
 </script>
 
@@ -141,7 +149,7 @@ onMounted(() => {
           Search
         </button>
         <button
-          @click="handleSearch"
+          @click="handleClearSearch"
           class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
           Clear
@@ -149,14 +157,14 @@ onMounted(() => {
       </div>
 
       <div class="flex gap-3 mt-4">
-        <button
+        <button v-if="user?.role === ROLES.SCHOOL_ADMIN"
           @click="addDeviceModalOpen = true"
           class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
           + Add device
         </button>
 
-        <button
+        <button v-if="user?.role === ROLES.SCHOOL_ADMIN"
           class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
           <img src="/images/import.png" alt="import" class="w-4 h-4" />
@@ -216,13 +224,29 @@ onMounted(() => {
                   class="bg-color-main3 text-white px-2 py-1 rounded"
                   @click="
                     router.push({
+                      path: `/devices/detail/${kid.schoolId}`,
+                      query: {
+                        studentId: kid.studentId,
+                        beaconId: kid.beaconId,
+                        deviceName: kid.deviceName,
+                        status: kid.kid.status,
+                      },
+                    })
+                  "
+                >
+                  <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
+                </button>
+                <!-- <button
+                  class="bg-color-main3 text-white px-2 py-1 rounded"
+                  @click="
+                    router.push({
                       path: `/devices/detail/${kid.id}`,
                       query: { userId: kid.userId },
                     })
                   "
                 >
                   <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
-                </button>
+                </button> -->
                 <button
                   class="bg-color-main-red text-white px-2 py-1 rounded"
                   @click="openDeleteModal(kid)"

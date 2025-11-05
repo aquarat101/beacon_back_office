@@ -54,10 +54,6 @@ async function fetchStudents() {
   }
 }
 
-function handleCreated() {
-  fetchStudents();
-}
-
 // ---------------- Selection ----------------
 const selectedKids = ref([]);
 
@@ -147,7 +143,10 @@ function handleDeleted(kid) {
   kids.value = kids.value.filter((k) => k.id !== kid.id);
 }
 
-onMounted(fetchStudents);
+onMounted(()=>{
+  fetchStudents  
+})
+
 </script>
 
 <template>
@@ -273,7 +272,7 @@ onMounted(fetchStudents);
       </div>
     </div>
 
-    <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="handleCreated" />
+    <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="fetchStudents" />
 
     <DeleteStudentModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
     <DeleteStudentMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"

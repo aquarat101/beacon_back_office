@@ -8,7 +8,7 @@ const { public: config } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
-const schoolId = route.params.id
+const schoolId = route.params.Id
 const loading = ref(false)
 const saving = ref(false)
 const form = ref(null)

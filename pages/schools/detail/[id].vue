@@ -14,7 +14,6 @@ import { useAuthStore } from "~/stores/auth";
 import { useAuth } from "~/composables/useAuth";
 import { ROLES } from "~/constants/role";
 
-
 const { public: config } = useRuntimeConfig();
 const auth = useAuthStore();
 const userStorage = useAuth();
@@ -22,8 +21,8 @@ const userStorage = useAuth();
 const route = useRoute();
 const router = useRouter();
 const schoolId = route.params.id;
-const tab = route.query.tab || 'info'
-const role = ref(true)
+const tab = route.query.tab || "info";
+const role = ref(true);
 
 // ---------------- Modal ----------------
 const deleteModalOpen = ref(false);
@@ -31,8 +30,8 @@ const isCreateSchoolModalOpen = ref(false);
 const isAddSchoolAdminModalOpen = ref(false);
 const isDeleteSchoolUserModalOpen = ref(false);
 const isDeleteSchoolUserMultiModalOpen = ref(false);
-const isDeleteStudentModalOpen = ref(false)
-const isDeleteStudentMultiModalOpen = ref(false)
+const isDeleteStudentModalOpen = ref(false);
+const isDeleteStudentMultiModalOpen = ref(false);
 
 // ---------------- Tabs ----------------
 const currentTab = ref(tab);
@@ -42,6 +41,7 @@ const school = ref(null);
 const staffs = ref([]);
 const staffsNum = ref("");
 const students = ref([]);
+const studentsNum = ref("");
 
 // ---------------- Staff Filter Inputs ----------------
 const staffSearchInput = ref("");
@@ -97,7 +97,7 @@ async function fetchSchoolStaffs() {
     });
     const json = await res.json();
     if (json.success) staffs.value = json.data || [];
-    staffsNum.value = staffs.value.length
+    staffsNum.value = staffs.value.length;
   } catch (err) {
     console.error(err);
   } finally {
@@ -119,8 +119,8 @@ async function fetchStudents() {
     const json = await res.json();
     if (!json.success) return console.warn("No students found");
     students.value = json.data;
-    console.log(students.value)
-
+    studentsNum.value = students.value.length
+    console.log(students.value);
   } catch (err) {
     console.error("🔥 Error fetching students:", err);
   }
@@ -289,10 +289,21 @@ function handleSearchStaff() {
   staffStatusActive.value = staffStatusInput.value;
   currentPage.value = 1;
 }
+function claerHandleSearchStaff() {
+  staffSearchActive.value = staffSearchInput.value = "";
+  staffRoleActive.value = staffRoleInput.value = "";
+  staffStatusActive.value = staffStatusInput.value = "";
+  currentPage.value = 1;
+}
 
 function handleSearchStudent() {
   studentSearchActive.value = studentSearchInput.value;
   studentStatusActive.value = studentStatusInput.value;
+  currentPage.value = 1;
+}
+function clearHandleSearchStudent() {
+  studentSearchActive.value = studentSearchInput.value = "";
+  studentStatusActive.value = studentStatusInput.value = "";
   currentPage.value = 1;
 }
 
@@ -309,9 +320,9 @@ function handleDelete() {
 }
 
 if (userStorage.user.value.role === ROLES.SCHOOL_ADMIN) {
-  role.value = false
+  role.value = false;
 } else {
-  role.value = true
+  role.value = true;
 }
 
 // ---------------- Load ----------------
@@ -319,16 +330,22 @@ onMounted(async () => {
   await fetchSchoolStaffs();
   await getSchool();
   await fetchStudents();
-
 });
 </script>
 
 <template>
   <div class="h-screen p-6">
     <!-- Overlay Loading -->
-    <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 flex flex-col items-center shadow-lg w-64">
-        <div class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mb-3 animate-spin"></div>
+    <div
+      v-if="isLoading"
+      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-lg p-6 flex flex-col items-center shadow-lg w-64"
+      >
+        <div
+          class="loader border-t-4 border-blue-500 rounded-full w-10 h-10 mb-3 animate-spin"
+        ></div>
         <p class="text-gray-700 text-center font-medium">Loading...</p>
       </div>
     </div>
@@ -336,30 +353,52 @@ onMounted(async () => {
     <!-- Back button -->
     <h1 class="text-2xl font-bold mb-4">School Detail</h1>
 
-    <button v-if="role" @click="router.push('/schools')" class="text-blue-500 mb-4 text-lg">
+    <button
+      v-if="role"
+      @click="router.push('/schools')"
+      class="text-blue-500 mb-4 text-lg"
+    >
       &lt; Back
     </button>
 
     <!-- Tabs -->
     <div v-if="role" class="flex border-b mb-5">
-      <button :class="currentTab === 'info' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
-        " @click="currentTab = 'info'" class="px-4">
+      <button
+        :class="
+          currentTab === 'info' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
+        "
+        @click="currentTab = 'info'"
+        class="px-4"
+      >
         Information Detail
       </button>
 
-      <button :class="currentTab === 'staffs' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
-        " @click="currentTab = 'staffs'" class="px-4">
+      <button
+        :class="
+          currentTab === 'staffs' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
+        "
+        @click="currentTab = 'staffs'"
+        class="px-4"
+      >
         Staffs list
       </button>
 
-      <button :class="currentTab === 'students' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
-        " @click="currentTab = 'students'" class="px-4">
+      <button
+        :class="
+          currentTab === 'students' ? 'border-b-2 border-blue-500 pb-2' : 'pb-2'
+        "
+        @click="currentTab = 'students'"
+        class="px-4"
+      >
         Students list
       </button>
     </div>
 
     <!-- Info tab -->
-    <div v-if="currentTab === 'info' && !isLoading" class="bg-white p-6 rounded-xl shadow">
+    <div
+      v-if="currentTab === 'info' && !isLoading"
+      class="bg-white p-6 rounded-xl shadow"
+    >
       <div class="flex items-center justify-between mb-6">
         <div>
           <div class="flex gap-3">
@@ -367,8 +406,12 @@ onMounted(async () => {
               {{ school?.schoolName ?? "no name" }}
             </h2>
 
-            <div class="flex items-center px-4 rounded-2xl text-white text-sm" :class="school?.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-              ">
+            <div
+              class="flex items-center px-4 rounded-2xl text-white text-sm"
+              :class="
+                school?.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
+              "
+            >
               {{ school?.status }}
             </div>
           </div>
@@ -377,15 +420,21 @@ onMounted(async () => {
             School ID: {{ school?.id }}
           </div>
         </div>
-        <button class="flex bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded"
-          @click="$router.push(`/schools/edit/${school.id}`)">
+        <button
+          class="flex bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          @click="$router.push(`/schools/edit/${school.id}`)"
+        >
           <img src="/images/edit.png" alt="edit" class="w-5 h-5 mr-1 mt-0.5" />
           Edit
         </button>
       </div>
 
       <div class="flex gap-6">
-        <img src="/images/layout/logo.png" alt="school" class="w-24 h-24 rounded-full" />
+        <img
+          src="/images/layout/logo.png"
+          alt="school"
+          class="w-24 h-24 rounded-full"
+        />
 
         <div class="flex-1">
           <p>
@@ -398,46 +447,59 @@ onMounted(async () => {
           </p>
           <p class="mt-2">
             <strong>Address</strong> <br />
-            {{ school?.address || '-' }}
+            {{ school?.address || "-" }}
           </p>
           <p class="mt-2">
             <strong>Latitude / Longitude</strong> <br />
-            {{ school?.latitude || '-' }} | {{ school?.longtitude || '-' }}
+            {{ school?.latitude || "-" }} | {{ school?.longtitude || "-" }}
           </p>
           <p class="mt-2">
             <strong>Contact Number</strong> <br />
-            {{ school?.contactNumber || '-' }}
+            {{ school?.contactNumber || "-" }}
           </p>
           <p class="mt-2">
             <strong>School Email</strong> <br />
-            {{ school?.schoolEmail || '-' }}
+            {{ school?.schoolEmail || "-" }}
           </p>
           <p class="mt-2">
             <strong>Website</strong> <br />
             <a :href="school?.website" class="text-blue-500" target="_blank">{{
-              school?.website || '-'
+              school?.website || "-"
             }}</a>
           </p>
 
-          <button v-if="role" @click="deleteModalOpen = true" class="text-blue-500 font-bold mt-4 underline">
+          <button
+            v-if="role"
+            @click="deleteModalOpen = true"
+            class="text-blue-500 font-bold mt-4 underline"
+          >
             Delete School
           </button>
         </div>
       </div>
     </div>
 
-    <DeleteSchoolModal v-model="deleteModalOpen" :school="school" @deleted="handleDelete" />
+    <DeleteSchoolModal
+      v-model="deleteModalOpen"
+      :school="school"
+      @deleted="handleDelete"
+    />
 
     <!-- Staffs tab -->
-    <div v-if="currentTab === 'staffs' && !isLoading" class="bg-white p-6 rounded-xl shadow">
+    <div
+      v-if="currentTab === 'staffs' && !isLoading"
+      class="bg-white p-6 rounded-xl shadow"
+    >
       <div class="">
         <!-- Page Title -->
         <div>
           <div class="flex gap-4">
             <h2 class="text-xl font-bold">Staff list</h2>
 
-            <div class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm">
-              {{ staffsNum }} 
+            <div
+              class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm"
+            >
+              {{ staffsNum  || 0}}
             </div>
           </div>
         </div>
@@ -445,36 +507,63 @@ onMounted(async () => {
         <!-- Search & Filters -->
         <div class="bg-white pt-3 rounded-xl mb-4">
           <div class="flex flex-wrap gap-3 items-center">
-            <input type="text" v-model="staffSearchInput" placeholder="Search by name/email"
-              class="border rounded-lg px-3 py-2 flex-1" />
+            <input
+              type="text"
+              v-model="staffSearchInput"
+              placeholder="Search by name/email"
+              class="border rounded-lg px-3 py-2 flex-1"
+            />
 
-            <select v-model="staffRoleInput" class="border rounded-lg px-3 py-2">
+            <select
+              v-model="staffRoleInput"
+              class="border rounded-lg px-3 py-2"
+            >
               <option value="">Role</option>
               <option>Admin</option>
               <option>Staff</option>
               <option>User</option>
             </select>
 
-            <select v-model="staffStatusInput" class="border rounded-lg px-3 py-2">
+            <select
+              v-model="staffStatusInput"
+              class="border rounded-lg px-3 py-2"
+            >
               <option value="">Status</option>
               <option>Active</option>
               <option>Inactive</option>
             </select>
 
-            <button class="bg-color-main2 text-white px-4 py-2 rounded-lg" @click="handleSearchStaff">
+            <button
+              class="bg-color-main2 text-white px-4 py-2 rounded-lg"
+              @click="handleSearchStaff"
+            >
               Search
+            </button>
+            <button
+              class="bg-color-main2 text-white px-4 py-2 rounded-lg"
+              @click="claerHandleSearchStaff"
+            >
+              Clear
             </button>
           </div>
 
           <div class="flex gap-3 mt-4">
-            <button @click="isAddSchoolAdminModalOpen = true"
-              class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg">
-              <img src="/images/person_plus.png" alt="person_plus" class="w-4 h-4" />
+            <button
+              @click="isAddSchoolAdminModalOpen = true"
+              class="flex items-center gap-1 bg-color-main2 text-white px-4 py-2 rounded-lg"
+            >
+              <img
+                src="/images/person_plus.png"
+                alt="person_plus"
+                class="w-4 h-4"
+              />
               Add School Admin
             </button>
 
-            <button @click="confirmDeleteSelected"
-              class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
+            <button
+              @click="confirmDeleteSelected"
+              class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg"
+            >
               <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
               Delete ({{
                 currentTab === "staffs"
@@ -502,40 +591,59 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="staff in paginatedStaffs" :key="staff.id" class="border-t hover:bg-gray-50">
+              <tr
+                v-for="staff in paginatedStaffs"
+                :key="staff.id"
+                class="border-t hover:bg-gray-50"
+              >
                 <td class="p-3">
-                  <input type="checkbox" :checked="selectedStaffs.includes(staff.id)"
-                    @change="toggleStaffSelection(staff.id)" />
+                  <input
+                    type="checkbox"
+                    :checked="selectedStaffs.includes(staff.id)"
+                    @change="toggleStaffSelection(staff.id)"
+                  />
                 </td>
 
                 <!-- Action buttons -->
                 <td class="p-3 text-center">
                   <div class="flex justify-center gap-2">
-                    <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="
-                      $router.push({
-                        path: `/schools/detail/staff_detail/${staff.id}`,
-                        query: {
-                          schoolId: schoolId
-                        }
-                      })
-                      ">
+                    <button
+                      class="bg-color-main3 text-white px-2 py-1 rounded"
+                      @click="
+                        $router.push({
+                          path: `/schools/detail/staff_detail/${staff.id}`,
+                          query: {
+                            schoolId: schoolId,
+                          },
+                        })
+                      "
+                    >
                       <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                     </button>
 
-                    <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="
-                      $router.push({
-                        path: `/schools/detail/staff_edit/${staff.id}`,
-                        query: {
-                          schoolId: schoolId
-                        }
-                      })
-                      ">
+                    <button
+                      class="bg-color-main3 text-white px-2 py-1 rounded"
+                      @click="
+                        $router.push({
+                          path: `/schools/detail/staff_edit/${staff.id}`,
+                          query: {
+                            schoolId: schoolId,
+                          },
+                        })
+                      "
+                    >
                       <img src="/images/edit.png" alt="edit" class="w-5 h-5" />
                     </button>
 
-                    <button class="bg-color-main-red text-white px-2 py-1 rounded"
-                      @click="isDeleteSchoolUserModalOpen = true">
-                      <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
+                    <button
+                      class="bg-color-main-red text-white px-2 py-1 rounded"
+                      @click="isDeleteSchoolUserModalOpen = true"
+                    >
+                      <img
+                        src="/images/trash.png"
+                        alt="delete"
+                        class="w-5 h-5"
+                      />
                     </button>
                   </div>
                 </td>
@@ -546,12 +654,16 @@ onMounted(async () => {
                 <td class="p-3 text-center">{{ staff.role }}</td>
 
                 <td class="p-3 text-center">
-                  <span class="px-4 py-1 rounded-full text-sm" :class="staff.status === 'Active'
-                    ? 'bg-green-500 text-white'
-                    : staff.status === 'Pending'
-                      ? 'bg-color-main-yellow text-black'
-                      : 'bg-color-main-red text-white '
-                    ">
+                  <span
+                    class="px-4 py-1 rounded-full text-sm"
+                    :class="
+                      staff.status === 'Active'
+                        ? 'bg-green-500 text-white'
+                        : staff.status === 'Pending'
+                        ? 'bg-color-main-yellow text-black'
+                        : 'bg-color-main-red text-white '
+                    "
+                  >
                     {{ staff.status }}
                   </span>
                 </td>
@@ -561,25 +673,38 @@ onMounted(async () => {
 
           <!-- Pagination -->
           <div class="flex justify-end items-center p-4">
-            <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === 1"
-              @click="goToPage(currentPage - 1)">
+            <button
+              class="text-color-main2 disabled:text-gray-600"
+              :disabled="currentPage === 1"
+              @click="goToPage(currentPage - 1)"
+            >
               &lt; Previous
             </button>
 
             <div class="flex gap-2 px-8">
-              <button v-for="page in pageNumbers" :key="page + '-btn'" class="px-3 py-1 rounded"
-                :disabled="page === '...'" :class="page === currentPage
-                  ? 'bg-blue-500 text-white'
-                  : page === '...'
+              <button
+                v-for="page in pageNumbers"
+                :key="page + '-btn'"
+                class="px-3 py-1 rounded"
+                :disabled="page === '...'"
+                :class="
+                  page === currentPage
+                    ? 'bg-blue-500 text-white'
+                    : page === '...'
                     ? 'bg-transparent text-gray-500 cursor-default'
                     : 'bg-white text-color-main2'
-                  " @click="goToPage(page)">
+                "
+                @click="goToPage(page)"
+              >
                 {{ page }}
               </button>
             </div>
 
-            <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === totalPages"
-              @click="goToPage(currentPage + 1)">
+            <button
+              class="text-color-main2 disabled:text-gray-600"
+              :disabled="currentPage === totalPages"
+              @click="goToPage(currentPage + 1)"
+            >
               Next &gt;
             </button>
           </div>
@@ -587,23 +712,39 @@ onMounted(async () => {
       </div>
 
       <!-- ✅ Staff Modals -->
-      <CreateSchoolModal v-model="isCreateSchoolModalOpen" @created="handleCreated" />
-      <AddSchoolAdminModal v-model="isAddSchoolAdminModalOpen" @added="handleAdded" />
-      <DeleteSchoolUserModal v-model="isDeleteSchoolUserModalOpen" @deleted="handleDeleted" />
-      <DeleteSchoolUserMultiModal v-model="isDeleteSchoolUserMultiModalOpen" @deleted="handleDeleted" />
-
+      <CreateSchoolModal
+        v-model="isCreateSchoolModalOpen"
+        @created="handleCreated"
+      />
+      <AddSchoolAdminModal
+        v-model="isAddSchoolAdminModalOpen"
+        @added="handleAdded"
+      />
+      <DeleteSchoolUserModal
+        v-model="isDeleteSchoolUserModalOpen"
+        @deleted="handleDeleted"
+      />
+      <DeleteSchoolUserMultiModal
+        v-model="isDeleteSchoolUserMultiModalOpen"
+        @deleted="handleDeleted"
+      />
     </div>
 
     <!-- Students tab -->
-    <div v-if="currentTab === 'students' && !isLoading" class="bg-white p-6 rounded-xl shadow">
+    <div
+      v-if="currentTab === 'students' && !isLoading"
+      class="bg-white p-6 rounded-xl shadow"
+    >
       <div class="">
         <!-- Page Title -->
         <div>
           <div class="flex gap-4">
             <h2 class="text-xl font-bold">Students list</h2>
 
-            <div class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm">
-              <!-- {{staffs?.length}}  -->
+            <div
+              class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm"
+            >
+              {{studentsNum || 0}} 
             </div>
           </div>
         </div>
@@ -611,23 +752,41 @@ onMounted(async () => {
         <!-- Search & Filters -->
         <div class="bg-white pt-3 rounded-xl mb-4">
           <div class="flex flex-wrap gap-3 items-center">
-            <input type="text" v-model="studentSearchInput" placeholder="Search by device name/serial"
-              class="border rounded-lg px-3 py-2 flex-1" />
+            <input
+              type="text"
+              v-model="studentSearchInput"
+              placeholder="Search by device name/serial"
+              class="border rounded-lg px-3 py-2 flex-1"
+            />
 
-            <select v-model="studentStatusInput" class="border rounded-lg px-3 py-2">
+            <select
+              v-model="studentStatusInput"
+              class="border rounded-lg px-3 py-2"
+            >
               <option value="">Status</option>
               <option>online</option>
               <option>offline</option>
             </select>
 
-            <button class="bg-color-main2 text-white px-4 py-2 rounded-lg" @click="handleSearchStudent">
+            <button
+              class="bg-color-main2 text-white px-4 py-2 rounded-lg"
+              @click="handleSearchStudent"
+            >
               Search
+            </button>
+            <button
+              class="bg-color-main2 text-white px-4 py-2 rounded-lg"
+              @click="clearHandleSearchStudent"
+            >
+              Clear
             </button>
           </div>
 
           <div class="flex gap-3 mt-4">
-            <button @click="confirmDeleteSelected"
-              class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg">
+            <button
+              @click="confirmDeleteSelected"
+              class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg"
+            >
               <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
               Delete ({{
                 currentTab === "staffs"
@@ -656,28 +815,44 @@ onMounted(async () => {
             </thead>
 
             <tbody>
-              <tr v-for="student in paginatedStudents" :key="student.id" class="border-t hover:bg-gray-50">
+              <tr
+                v-for="student in paginatedStudents"
+                :key="student.id"
+                class="border-t hover:bg-gray-50"
+              >
                 <td class="p-3">
-                  <input type="checkbox" :checked="selectedStudents.includes(student.id)"
-                    @change="toggleStudentSelection(student.id)" />
+                  <input
+                    type="checkbox"
+                    :checked="selectedStudents.includes(student.id)"
+                    @change="toggleStudentSelection(student.id)"
+                  />
                 </td>
 
                 <!-- Action buttons -->
                 <td class="p-3 text-center">
                   <div class="flex justify-center gap-2">
-                    <button class="bg-color-main3 text-white px-2 py-1 rounded" @click="
-                      $router.push({
-                        path: `/schools/detail/student_detail/${student.id}`,
-                        query: {
-                          schoolId: schoolId,
-                        },
-                      })
-                      ">
+                    <button
+                      class="bg-color-main3 text-white px-2 py-1 rounded"
+                      @click="
+                        $router.push({
+                          path: `/schools/detail/student_detail/${student.id}`,
+                          query: {
+                            schoolId: schoolId,
+                          },
+                        })
+                      "
+                    >
                       <img src="/images/eye.png" alt="eye" class="w-5 h-5" />
                     </button>
-                    <button class="bg-color-main-red text-white px-2 py-1 rounded"
-                      @click="isDeleteStudentModalOpen = true">
-                      <img src="/images/trash.png" alt="delete" class="w-5 h-5" />
+                    <button
+                      class="bg-color-main-red text-white px-2 py-1 rounded"
+                      @click="isDeleteStudentModalOpen = true"
+                    >
+                      <img
+                        src="/images/trash.png"
+                        alt="delete"
+                        class="w-5 h-5"
+                      />
                     </button>
                   </div>
                 </td>
@@ -690,10 +865,14 @@ onMounted(async () => {
                 </td>
 
                 <td class="p-3 text-center">
-                  <span class="px-4 py-1 rounded-full text-white text-sm" :class="student.status === 'Active'
-                    ? 'bg-green-500'
-                    : 'bg-color-main-red'
-                    ">
+                  <span
+                    class="px-4 py-1 rounded-full text-white text-sm"
+                    :class="
+                      student.status === 'Active'
+                        ? 'bg-green-500'
+                        : 'bg-color-main-red'
+                    "
+                  >
                     {{ student.status }}
                   </span>
                 </td>
@@ -703,25 +882,38 @@ onMounted(async () => {
 
           <!-- Pagination -->
           <div class="flex justify-end items-center p-4">
-            <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === 1"
-              @click="goToPage(currentPage - 1)">
+            <button
+              class="text-color-main2 disabled:text-gray-600"
+              :disabled="currentPage === 1"
+              @click="goToPage(currentPage - 1)"
+            >
               &lt; Previous
             </button>
 
             <div class="flex gap-2 px-8">
-              <button v-for="page in pageNumbers" :key="page + '-btn'" class="px-3 py-1 rounded"
-                :disabled="page === '...'" :class="page === currentPage
-                  ? 'bg-blue-500 text-white'
-                  : page === '...'
+              <button
+                v-for="page in pageNumbers"
+                :key="page + '-btn'"
+                class="px-3 py-1 rounded"
+                :disabled="page === '...'"
+                :class="
+                  page === currentPage
+                    ? 'bg-blue-500 text-white'
+                    : page === '...'
                     ? 'bg-transparent text-gray-500 cursor-default'
                     : 'bg-white text-color-main2'
-                  " @click="goToPage(page)">
+                "
+                @click="goToPage(page)"
+              >
                 {{ page }}
               </button>
             </div>
 
-            <button class="text-color-main2 disabled:text-gray-600" :disabled="currentPage === totalPages"
-              @click="goToPage(currentPage + 1)">
+            <button
+              class="text-color-main2 disabled:text-gray-600"
+              :disabled="currentPage === totalPages"
+              @click="goToPage(currentPage + 1)"
+            >
               Next &gt;
             </button>
           </div>
@@ -729,12 +921,21 @@ onMounted(async () => {
       </div>
 
       <!-- ✅ Student Modals -->
-      <DeleteStudentModal v-model="isDeleteStudentModalOpen" @deleted="handleDeleted" />
-      <DeleteStudentMultiModal v-model="isDeleteStudentMultiModalOpen" @deleted="handleDeleted" />
+      <DeleteStudentModal
+        v-model="isDeleteStudentModalOpen"
+        @deleted="handleDeleted"
+      />
+      <DeleteStudentMultiModal
+        v-model="isDeleteStudentMultiModalOpen"
+        @deleted="handleDeleted"
+      />
     </div>
 
     <!-- Delete modal -->
-    <DeleteSchoolUserMultiModal v-model="isDeleteSchoolUserMultiModalOpen" :schoolUsers="selectedUsers"
-      @deleted="handleDeleted" />
+    <DeleteSchoolUserMultiModal
+      v-model="isDeleteSchoolUserMultiModalOpen"
+      :schoolUsers="selectedUsers"
+      @deleted="handleDeleted"
+    />
   </div>
 </template>

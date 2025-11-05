@@ -1,7 +1,7 @@
 <script setup>
 const router = useRouter()
 const { public: config } = useRuntimeConfig()
-const { selectedAvatar,form , isLoading , fetchUserById , getSchool , handleSave , confirmAvatar } = useSchoolUsers(
+const { showAvatarPopup,selectedAvatar,form , isLoading , fetchUserById , getSchool , handleSave , confirmAvatar } = useSchoolUsers(
   config.apiDomain
 );
   const avatars = [
@@ -14,7 +14,7 @@ const { selectedAvatar,form , isLoading , fetchUserById , getSchool , handleSave
   ];
 // const schoolTypes = ["Piyo Piyo Elementary School", "Privi", "Chonburi"]
 const statusOptions = ["Active", "Inactive"]
-const showAvatarPopup = ref(false)
+// const showAvatarPopup = ref(false)
 
 onMounted(() => {
     fetchUserById()

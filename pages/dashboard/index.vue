@@ -36,8 +36,8 @@ async function intDashBoardData() {
   itemRow3.value.number = dashBoardData?.value?.totalAlertsToday || 0;
 }
 
-onMounted(async () => {
-  await intDashBoardData();
+onMounted(() => {
+  intDashBoardData();
 });
 
 const itemRow1 = ref([

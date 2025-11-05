@@ -7,69 +7,70 @@ export function useDevices(apiDomain) {
   const auth = useAuthStore();
   const kids = ref([]);
   const errorMessage = ref("");
+  const studentId = route.query.studentId;
+  const beaconId = route.query.beaconId;
+  const deviceName = route.query.deviceName;
+  const schoolId = route.params.id;
+  const deviceStatus = route.query.status;
+  const beacon = ref(null);
+  const locations = ref([]);
+  const loadingLocations = ref(false);
 
   async function fetchKids() {
+    console.log("1-1");
+
     try {
       const res = await useApiFire(`/students/getAllStudent`);
       if (res) {
-        console.log("res",res);
-        
+        console.log("res", res);
+
         kids.value = res.data;
+
+        console.log("kids", kids.value);
       }
     } catch (err) {
       errorMessage.value = err.message;
     }
   }
-//   async function fetchKids() {
-//     try {
-//       const { public: config } = useRuntimeConfig();
-//       const res = await useApiFire(`/kids/getAllKids`);
-//       if (res) {
-//         const rawKids = res.kids || [];
+  async function fetchKidAndParent() {
+    console.log("1-1");
 
-//         const kidsWithExtraData = await Promise.all(
-//           rawKids.map(async (kid) => {
-//             let placeName = "Unknown place";
-//             let parentName = "Unknown parent";
+    try {
+      const res = await useApiFire(
+        `/students/${schoolId}/student/${studentId}`
+      );
 
-//             try {
-//               const placeRes = await useApiFire(
-//                 `/places/getPlace/${kid.userId}/${kid.lastZoneId}`);
-//               if (placeRes.ok) {
-//                 const placeData = await placeRes.json();
-//                 placeName =
-//                   placeData?.place?.name || placeData?.name || "Unknown place";
-//               }
-//             } catch {}
+      if (res) {
+        console.log("res", res);
 
-//             try {
-//               const userRes = await useApiFire(
-//                 `${config.apiDomain}/users/get/${kid.userId}`,
-//                 {
-//                   headers: {
-//                     "Content-Type": "application/json",
-//                     Authorization: `Bearer ${auth.token}`,
-//                   },
-//                 }
-//               );
-//               if (userRes.ok) {
-//                 const userData = await userRes.json();
-//                 parentName =
-//                   userData?.user?.firstName ||
-//                   userData?.firstName ||
-//                   "Unknown parent";
-//               }
-//             } catch {}
+        beacon.value = res.data;
+        fetchLocations();
+        console.log("kids", kids.value);
+      }
+    } catch (err) {
+      errorMessage.value = err.message;
+    }
+  }
 
-//             return { ...kid, placeName, parentName };
-//           })
-//         );
-//         kids.value = kidsWithExtraData;
-//       }
-//     } catch (err) {
-//       errorMessage.value = err.message;
-//     }
-//   }
+  async function fetchLocations() {
 
-  return { kids, fetchKids };
+
+    loadingLocations.value = true;
+    try {
+      const res = await useApiFire(
+        `/students/historyTrack/${schoolId}/student/${studentId}`
+      );
+
+      if (res) {
+        locations.value = res.data;
+      }
+    } catch (err) {
+      console.error("Fetch locations error:", err);
+      locations.value = [];
+    } finally {
+      loadingLocations.value = false;
+    }
+  }
+
+  return { deviceStatus,deviceName,beaconId, locations, beacon, kids, fetchKids, fetchKidAndParent };
 }

@@ -9,6 +9,8 @@ export function useSchoolUsers(apiDomain) {
   const schoolId = route.params.id;
   const staffs = ref([]);
   const isLoading = ref(false);
+  const showAvatarPopup = ref(false);
+
   const user = ref(null);
   const selectedAvatar = ref("");
   const schoolName = ref();
@@ -132,6 +134,7 @@ export function useSchoolUsers(apiDomain) {
   }
 
   return {
+    showAvatarPopup,
     errorMessage,
     schoolName,
     form,

@@ -1,6 +1,10 @@
 import { useAuthStore } from "~/stores/auth";
 
-export function useSchools(apiDomain) {
+export function useSchools() {
+  const { public: config } = useRuntimeConfig();
+  const apiDomain = config.apiDomain
+  console.log("api",apiDomain);
+  
   const schools = ref([]);
   const isLoading = ref(false);
 

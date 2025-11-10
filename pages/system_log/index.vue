@@ -1,6 +1,5 @@
 <script setup>
-const { public: config } = useRuntimeConfig();
-const { logs, fetchLogs } = useSystemLog(config.apiDomain);
+const { logs, fetchLogs } = useSystemLog();
 
 // pagination
 const currentPage = ref(1)

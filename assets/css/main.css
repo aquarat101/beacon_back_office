@@ -1,25 +1,25 @@
 .bg-color-main2 {
-    background-color: #0198FF;
+  background-color: #0198ff;
 }
 
 .bg-color-main3 {
-    background-color: #035CB2;
+  background-color: #035cb2;
 }
 
 .text-color-main2 {
-    color: #0198FF;
+  color: #0198ff;
 }
 
 .text-color-main3 {
-    color: #035CB2;
+  color: #035cb2;
 }
 
 .bg-color-main-red {
-    background-color: #E65353;
+  background-color: #e65353;
 }
 
 .bg-color-main-yellow {
-    background-color: #FFE604;
+  background-color: #ffe604;
 }
 
 ิ.loader {
@@ -27,3 +27,9 @@
   border-top-color: #3b82f6;
   border-radius: 50%;
 }
+
+.dp__input {
+  border: none !important;       
+  border-radius: 100% !important;
+}
+

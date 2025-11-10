@@ -5,20 +5,16 @@ import DeleteStudentMultiModal from "~/components/DeleteStudentMultiModal.vue";
 import { useAuthStore } from "~/stores/auth";
 import { ROLES } from "~/constants/role";
 
-
-
-const { public: config } = useRuntimeConfig();
-const { kids, fetchKids } = useDevices(config.apiDomain);
+const { kids, fetchKids } = useDevices();
 const auth = useAuthStore();
-const role = auth.user.role
+const user = auth.user;
 const route = useRoute();
 const router = useRouter();
-
 const school = route.params.id;
 
 // modal
 const deleteModalOpen = ref(false);
-const deleteMultiModalOpen = ref(false); // สำหรับ multi delete
+const deleteMultiModalOpen = ref(false);
 const addDeviceModalOpen = ref(false);
 const selectedKid = ref(null);
 
@@ -41,26 +37,25 @@ const selectedKids = ref([]);
 const allKidsSelected = computed({
   get: () =>
     paginatedKids.value.length > 0 &&
-    paginatedKids.value.every((k) => selectedKids.value.includes(k.id)),
+    paginatedKids.value.every((k) => selectedKids.value.includes(k.studentId)),
   set: (val) => {
-    const ids = paginatedKids.value.map((k) => k.id);
-    if (val)
+    const ids = paginatedKids.value.map((k) => k.studentId);
+
+    if (val) {
       selectedKids.value = Array.from(new Set([...selectedKids.value, ...ids]));
-    else
+    } else {
       selectedKids.value = selectedKids.value.filter((id) => !ids.includes(id));
+    }
   },
 });
 
-function toggleKidSelection(id) {
-  if (selectedKids.value.includes(id))
-    selectedKids.value = selectedKids.value.filter((i) => i !== id);
-  else selectedKids.value.push(id);
+function toggleKidSelection(studentId, schoolId) {
+  if (selectedKids.value.includes(studentId)) {
+    selectedKids.value = selectedKids.value.filter((i) => i !== studentId);
+  } else {
+    selectedKids.value.push({ studentId: studentId, schoolId: schoolId });
+  }
 }
-
-// ---------------- Multi Delete ----------------
-const selectedKidsForDelete = computed(() =>
-  kids.value.filter((k) => selectedKids.value.includes(k.id))
-);
 
 function confirmDeleteSelected() {
   if (selectedKids.value.length === 0) return;
@@ -68,8 +63,8 @@ function confirmDeleteSelected() {
 }
 
 function handleDeletedMulti() {
-  kids.value = kids.value.filter((k) => !selectedKids.value.includes(k.id));
   selectedKids.value = [];
+  fetchKids();
 }
 
 // pagination
@@ -120,10 +115,6 @@ function openDeleteModal(kid) {
   deleteModalOpen.value = true;
 }
 
-function handleDeleted(kid) {
-  kids.value = kids.value.filter((k) => k.id !== kid.id);
-}
-
 onMounted(() => {
   fetchKids();
 });
@@ -157,17 +148,19 @@ onMounted(() => {
       </div>
 
       <div class="flex gap-3 mt-4">
-        <button v-if="user?.role === ROLES.SCHOOL_ADMIN"
+        <button
+          v-if="user?.role === ROLES.SCHOOL_ADMIN"
           @click="addDeviceModalOpen = true"
           class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
           + Add device
         </button>
 
-        <button v-if="user?.role === ROLES.SCHOOL_ADMIN"
+        <button
+          v-if="user?.role === ROLES.SCHOOL_ADMIN"
           class="flex items-center gap-1 bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
-          <img src="/images/import.png" alt="import" class="w-4 h-4" />
+          <img src="/images/import.png" class="w-4 h-4" />
           Import
         </button>
 
@@ -176,19 +169,20 @@ onMounted(() => {
           @click="confirmDeleteSelected"
           class="flex items-center gap-1 bg-color-main-red text-white px-4 py-2 rounded-lg"
         >
-          <img src="/images/trash.png" alt="trash" class="w-5 h-5" />
+          <img src="/images/trash.png" class="w-5 h-5" />
           Delete ({{ selectedKids.length }})
         </button>
       </div>
     </div>
 
-    <div v-if="isLoading" class="text-center py-10 text-gray-500">
+    <!-- <div v-if="isLoading" class="text-center py-10 text-gray-500">
       Loading kids...
     </div>
     <div v-else-if="errorMessage" class="text-center text-red-500 py-10">
       {{ errorMessage }}
-    </div>
-    <div v-else class="bg-white rounded-xl shadow overflow-hidden">
+    </div> -->
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <!-- <div v-else class="bg-white rounded-xl shadow overflow-hidden"> -->
       <table class="w-full text-left border-collapse">
         <thead class="bg-gray-100">
           <tr>
@@ -213,8 +207,8 @@ onMounted(() => {
             <td class="p-3">
               <input
                 type="checkbox"
-                :checked="selectedKids.includes(kid.id)"
-                @change="toggleKidSelection(kid.id)"
+                :checked="selectedKids.includes(kid.studentId)"
+                @change="toggleKidSelection(kid.studentId, kid.schoolId)"
               />
             </td>
 
@@ -324,13 +318,18 @@ onMounted(() => {
 
     <DeleteStudentModal
       v-model="deleteModalOpen"
-      :kid="selectedKid"
-      @deleted="handleDeleted"
+      :student="selectedKid"
+      @deleted="fetchKids"
     />
     <DeleteStudentMultiModal
       v-model="deleteMultiModalOpen"
-      :kids="selectedKidsForDelete"
+      :students="selectedKids"
       @deleted="handleDeletedMulti"
     />
+    <!-- <DeleteStudentMultiModal
+      v-model="deleteMultiModalOpen"
+      :kids="selectedKidsForDelete"
+      @deleted="handleDeletedMulti"
+    /> -->
   </div>
 </template>

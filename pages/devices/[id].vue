@@ -14,7 +14,7 @@ const schoolId = route.params.id;
 
 // modal
 const deleteModalOpen = ref(false);
-const deleteMultiModalOpen = ref(false); // สำหรับ multi delete
+const deleteMultiModalOpen = ref(false); 
 const addDeviceModalOpen = ref(false);
 const selectedKid = ref(null);
 
@@ -54,7 +54,6 @@ async function fetchStudents() {
   }
 }
 
-// ---------------- Selection ----------------
 const selectedKids = ref([]);
 
 const allKidsSelected = computed({
@@ -274,7 +273,7 @@ onMounted(()=>{
 
     <AddDeviceModal v-model="addDeviceModalOpen" :schoolId="schoolId" @created="fetchStudents" />
 
-    <DeleteStudentModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="handleDeleted" />
+    <DeleteStudentModal v-model="deleteModalOpen" :kid="selectedKid" @deleted="fetchStudents" />
     <DeleteStudentMultiModal v-model="deleteMultiModalOpen" :kids="selectedKidsForDelete"
       @deleted="handleDeletedMulti" />
   </div>

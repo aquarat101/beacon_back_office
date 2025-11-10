@@ -1,5 +1,4 @@
 <script setup>
-import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 
 const auth = useAuthStore();
@@ -70,21 +69,7 @@ async function AddDeviceModal() {
         body: JSON.stringify(form.value),
       }
     );
-
-    // const resKid = await fetch(
-    //   `${config.apiDomain}/kids/create/${form.value.userId}`,
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${auth.token}`,
-    //     },
-    //     body: JSON.stringify(form.value),
-    //   }
-    // );
-
     const studentData = await resStudent.json();
-    // const kidData = await resKid.json();
 
     if (studentData.success) {
       emit("created", studentData);

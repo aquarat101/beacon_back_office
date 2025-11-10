@@ -1,10 +1,7 @@
 <script setup>
 import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";
 
-const { public: config } = useRuntimeConfig();
-const { errorMessage , user, schoolId, isLoading, fetchUser } = useSchoolUsers(
-  config.apiDomain
-);
+const { errorMessage , user, schoolId, isLoading, fetchUser } = useSchoolUsers();
 const router = useRouter();
 const deleteModalOpen = ref(false);
 
@@ -95,7 +92,6 @@ onMounted(fetchUser);
       </div>
     </div>
 
-    <!-- ✅ Modal -->
     <DeleteSchoolUserModal
       v-model="deleteModalOpen"
       :schoolUser="user"
@@ -103,3 +99,12 @@ onMounted(fetchUser);
     />
   </div>
 </template>
+
+<style scoped>
+strong{
+  color: black !important;
+}
+p{
+  color: #767A85 !important;
+}
+</style>

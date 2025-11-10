@@ -1,16 +1,15 @@
-import { useAuthStore } from "~/stores/auth";
 import { useApi } from "~/composables/useApiFire";
-export function useSchoolUsers(apiDomain) {
+
+export function useSchoolUsers() {
   const { useApiFire } = useApi();
   const route = useRoute();
   const router = useRouter();
-  const auth = useAuthStore();
   const userId = route.params.id;
   const schoolId = route.params.id;
   const staffs = ref([]);
   const isLoading = ref(false);
   const showAvatarPopup = ref(false);
-
+  const saving = ref(false);
   const user = ref(null);
   const selectedAvatar = ref("");
   const schoolName = ref();
@@ -98,6 +97,8 @@ export function useSchoolUsers(apiDomain) {
   }
 
   async function handleSave() {
+    saving.value = true;
+
     try {
       const res = await useApiFire(
         `/schoolUsers/updateSchoolUser/${form.value.id}`,
@@ -117,6 +118,8 @@ export function useSchoolUsers(apiDomain) {
 
       if (res) {
         alert("✅ Updated successfully!");
+        saving.value = false;
+
         router.push(`/users/detail/${userId}`);
       } else {
         alert("❌ Failed to update user");
@@ -134,6 +137,7 @@ export function useSchoolUsers(apiDomain) {
   }
 
   return {
+    saving,
     showAvatarPopup,
     errorMessage,
     schoolName,

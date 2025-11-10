@@ -3,8 +3,7 @@ import CreateSchoolModal from "~/components/CreateSchoolModal.vue";
 import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue";
 import DeleteSchoolModal from "~~/components/DeleteSchoolModal.vue";
 
-const { public: config } = useRuntimeConfig();
-const { schools, isLoading, fetchSchools } = useSchools(config.apiDomain);
+const { schools, isLoading, fetchSchools } = useSchools();
 
 const isCreateSchoolModalOpen = ref(false);
 const isAddSchoolAdminModalOpen = ref(false);
@@ -25,8 +24,6 @@ const activeSearchQuery = ref("");
 const activeFilterType = ref("");
 const activeFilterLevel = ref("");
 const activeFilterStatus = ref("");
-
-onMounted(fetchSchools);
 
 // Filtered schools based on **active filters**
 const filteredSchools = computed(() => {
@@ -106,6 +103,10 @@ function confirmDelete(school) {
   selectedSchoolName.value = school.schoolName;
   isDeleteModalOpen.value = true;
 }
+
+onMounted(() => {
+  fetchSchools();
+});
 </script>
 
 <template>

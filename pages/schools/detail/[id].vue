@@ -119,7 +119,7 @@ async function fetchStudents() {
     const json = await res.json();
     if (!json.success) return console.warn("No students found");
     students.value = json.data;
-    studentsNum.value = students.value.length
+    studentsNum.value = students.value.length;
     console.log(students.value);
   } catch (err) {
     console.error("🔥 Error fetching students:", err);
@@ -435,47 +435,47 @@ onMounted(async () => {
           alt="school"
           class="w-24 h-24 rounded-full"
         />
+      </div>
+      <div class="flex-1 mt-8">
+        <p>
+          <strong>School Type</strong> <br />
 
-        <div class="flex-1">
-          <p>
-            <strong>School Type</strong> <br />
-            {{ school?.schoolType }}
-          </p>
-          <p class="mt-2">
-            <strong>Education Level</strong> <br />
-            {{ school?.educationLevel }}
-          </p>
-          <p class="mt-2">
-            <strong>Address</strong> <br />
-            {{ school?.address || "-" }}
-          </p>
-          <p class="mt-2">
-            <strong>Latitude / Longitude</strong> <br />
-            {{ school?.latitude || "-" }} | {{ school?.longtitude || "-" }}
-          </p>
-          <p class="mt-2">
-            <strong>Contact Number</strong> <br />
-            {{ school?.contactNumber || "-" }}
-          </p>
-          <p class="mt-2">
-            <strong>School Email</strong> <br />
-            {{ school?.schoolEmail || "-" }}
-          </p>
-          <p class="mt-2">
-            <strong>Website</strong> <br />
-            <a :href="school?.website" class="text-blue-500" target="_blank">{{
-              school?.website || "-"
-            }}</a>
-          </p>
+          {{ school?.schoolType }}
+        </p>
+        <p class="mt-2">
+          <strong>Education Level</strong> <br />
+          {{ school?.educationLevel }}
+        </p>
+        <p class="mt-2">
+          <strong>Address</strong> <br />
+          {{ school?.address || "-" }}
+        </p>
+        <p class="mt-2">
+          <strong>Latitude / Longitude</strong> <br />
+          {{ school?.latitude || "-" }} | {{ school?.longtitude || "-" }}
+        </p>
+        <p class="mt-2">
+          <strong>Contact Number</strong> <br />
+          {{ school?.contactNumber || "-" }}
+        </p>
+        <p class="mt-2">
+          <strong>School Email</strong> <br />
+          {{ school?.schoolEmail || "-" }}
+        </p>
+        <p class="mt-2">
+          <strong>Website</strong> <br />
+          <a :href="school?.website" class="text-blue-500" target="_blank">{{
+            school?.website || "-"
+          }}</a>
+        </p>
 
-          <button
-            v-if="role"
-            @click="deleteModalOpen = true"
-            class="text-blue-500 font-bold mt-4 underline"
-          >
-            Delete School
-          </button>
-        </div>
+        <button
+          v-if="role"
+          @click="deleteModalOpen = true"
+          class="text-blue-500 font-bold mt-4 underline"
+        >
+          Delete School
+        </button>
       </div>
     </div>
 
@@ -499,7 +499,7 @@ onMounted(async () => {
             <div
               class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm"
             >
-              {{ staffsNum  || 0}}
+              {{ staffsNum || 0 }}
             </div>
           </div>
         </div>
@@ -744,7 +744,7 @@ onMounted(async () => {
             <div
               class="flex items-center px-4 rounded-2xl bg-color-main3 text-white text-sm"
             >
-              {{studentsNum || 0}} 
+              {{ studentsNum || 0 }}
             </div>
           </div>
         </div>
@@ -939,3 +939,13 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+<style scoped>
+p {
+  color: #6b7280 !important;
+}
+
+strong {
+  color: #000 !important;
+}
+</style>

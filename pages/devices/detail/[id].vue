@@ -1,35 +1,33 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import DeleteStudentModal from "~/components/DeleteStudentModal.vue";
-import { useAuthStore } from "~/stores/auth";
+import DatePicker from "~/components/DatePicker.vue";
 
-const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 
 const { public: config } = useRuntimeConfig();
-const { deviceStatus,deviceName,beaconId,locations, beacon, fetchKidAndParent } = useDevices(config.apiDomain);
-// const { locations, beacon, fetchKidAndParent } = useDevices(config.apiDomain);
+const {
+  deviceStatus,
+  deviceName,
+  beaconId,
+  locations,
+  beacon,
+  fetchKidAndParent,
+} = useDevices(config.apiDomain);
 
-// const studentId = route.query.userId
-// const schoolId = route.params.id
-const userId = route.query.userId;
-const kidId = route.params.id;
-
-// modal delete
 const deleteModalOpen = ref(false);
 
 // current tab
 const currentTab = ref("info");
-
 const parentProfile = ref(null);
 const isLoading = ref(false);
 const errorMessage = ref("");
 
+const startDate = ref("");
+const endDate = ref("");
+const searchQueryInput = ref("");
+
 // location history
-
-
 
 // pagination
 const currentPage = ref(1);
@@ -58,9 +56,9 @@ function goToPage(page) {
 }
 
 function formatDate(date) {
-  if (!date) return "-"; 
+  if (!date) return "-";
 
-  const d = new Date(date); 
+  const d = new Date(date);
   return (
     d.toLocaleDateString("en-US", {
       month: "numeric",
@@ -72,11 +70,21 @@ function formatDate(date) {
   );
 }
 
-
 function handleDelete() {
   deleteModalOpen.value = false;
   router.push("/devices");
 }
+
+function handleSearch() {}
+
+function clearhandleSearch() {
+  startDate.value = "";
+  endDate.value = "";
+  searchQueryInput.value = "";
+  console.log("1", startDate.value);
+  console.log("2", endDate.value);
+}
+
 
 onMounted(() => {
   fetchKidAndParent();
@@ -148,12 +156,25 @@ onMounted(() => {
 
         <img :src="beacon.avatar" alt="avatar" class="w-20 h-20 rounded-full" />
 
-        <div>
-          <p><strong>Parent Name:</strong> {{ beacon.parent.firstName }} {{ beacon.parent.lastName }}</p>
-          <p><strong>Email:</strong> {{ beacon.parent.email }}</p>
-          <p><strong>Phone:</strong> {{ beacon.parent.phone }}</p>
-          <p><strong>School:</strong> {{ beacon.schoolName }}</p>
-          <p><strong>Remark:</strong> {{ beacon.remark }}</p>
+        <div class="mt-6">
+          <strong>Parent Name</strong>
+          <p>{{ beacon.parent.firstName }} {{ beacon.parent.lastName }}</p>
+          <strong>Email</strong>
+          <p>
+            {{ beacon.parent.email }}
+          </p>
+          <strong>Phone</strong>
+          <p>
+            {{ beacon.parent.phone }}
+          </p>
+          <strong>School</strong>
+          <p>
+            {{ beacon.schoolName }}
+          </p>
+          <strong>Remark</strong>
+          <p>
+            {{ beacon.remark }}
+          </p>
         </div>
 
         <button
@@ -170,6 +191,30 @@ onMounted(() => {
         class="p-6 bg-white rounded-xl shadow"
       >
         <h1 class="text-2xl font-bold mb-6">Location History</h1>
+
+        <div class="flex mb-6 gap-4">
+          <input
+            v-model="searchQueryInput"
+            type="text"
+            placeholder="Search"
+            class="border rounded-lg px-3 py-2 flex-1 w-full"
+          />
+
+          <DatePicker v-model="startDate" placeholder="Start Date"></DatePicker>
+          <DatePicker v-model="endDate" placeholder="End Date"></DatePicker>
+          <button
+            @click="handleSearch"
+            class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            Search
+          </button>
+          <button
+            @click="clearhandleSearch"
+            class="bg-color-main2 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            Clear
+          </button>
+        </div>
 
         <table class="w-full border-collapse">
           <thead class="bg-gray-100">
@@ -240,3 +285,14 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+p {
+  color: #767a85;
+  margin-bottom: 16px !important;
+}
+.dp__input {
+  border: none !important;
+  box-shadow: none !important;
+}
+</style>

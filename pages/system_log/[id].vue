@@ -1,16 +1,12 @@
 <script setup>
-import { ref, computed, onMounted } from "vue"
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from "~/stores/auth";
+// import { useAuthStore } from "~/stores/auth";
 
-const auth = useAuthStore();
-const { public: config } = useRuntimeConfig()
+const { logs, fetchLogs } = useSystemLog();
 
-const route = useRoute()
-const router = useRouter()
+// const route = useRoute()
+// const router = useRouter()
 
 // state
-const logs = ref([])
 
 // pagination
 const currentPage = ref(1)
@@ -60,29 +56,29 @@ function formatDate(date) {
 }
 
 // fetch data from API
-async function fetchLogs() {
-    try {
-        const res = await fetch(`${config.apiDomain}/systemBof/`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${auth.token}`,
-            },
-        })
-        const data = await res.json()
-        console.log("✅ Logs data:", data)
+// async function fetchLogs() {
+//     try {
+//         const res = await fetch(`${config.apiDomain}/systemBof/`, {
+//             headers: {
+//                 "Content-Type": "application/json",
+//                 Authorization: `Bearer ${auth.token}`,
+//             },
+//         })
+//         const data = await res.json()
+//         console.log("✅ Logs data:", data)
 
-        // ✅ แปลงข้อมูลจาก API ให้ตรงกับตาราง
-        logs.value = (data.logs || []).map((item, index) => ({
-            id: index + 1,
-            datetime: item.timestamp,
-            log: item.action,
-            user: `Super ${item.targetName} Chan`,  // ตัวอย่างใน UI
-            role: item.actorRole === "super_admin" ? "Super Admin" : item.actorRole
-        }))
-    } catch (error) {
-        console.error("Failed to fetch logs:", error)
-    }
-}
+//         // ✅ แปลงข้อมูลจาก API ให้ตรงกับตาราง
+//         logs.value = (data.logs || []).map((item, index) => ({
+//             id: index + 1,
+//             datetime: item.timestamp,
+//             log: item.action,
+//             user: `Super ${item.targetName} Chan`,  // ตัวอย่างใน UI
+//             role: item.actorRole === "super_admin" ? "Super Admin" : item.actorRole
+//         }))
+//     } catch (error) {
+//         console.error("Failed to fetch logs:", error)
+//     }
+// }
 
 onMounted(() => {
     fetchLogs()

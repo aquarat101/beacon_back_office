@@ -1,9 +1,6 @@
 <script setup>
 const router = useRouter()
-const { public: config } = useRuntimeConfig()
-const { showAvatarPopup,selectedAvatar,form , isLoading , fetchUserById , getSchool , handleSave , confirmAvatar } = useSchoolUsers(
-  config.apiDomain
-);
+const { saving, showAvatarPopup,selectedAvatar,form , isLoading , fetchUserById , getSchool , handleSave , confirmAvatar } = useSchoolUsers();
   const avatars = [
     "/image-avatars/1.png",
     "/image-avatars/2.png",
@@ -12,15 +9,11 @@ const { showAvatarPopup,selectedAvatar,form , isLoading , fetchUserById , getSch
     "/image-avatars/5.png",
     "/image-avatars/6.png",
   ];
-// const schoolTypes = ["Piyo Piyo Elementary School", "Privi", "Chonburi"]
 const statusOptions = ["Active", "Inactive"]
-// const showAvatarPopup = ref(false)
-
 onMounted(() => {
     fetchUserById()
     getSchool()
 })
-
 </script>
 
 <template>
@@ -89,17 +82,26 @@ onMounted(() => {
                 </div>
             </form>
 
-            <div class="flex justify-end mt-6 gap-2">
-                <button type="button" @click="router.push('/schools')"
-                    class="px-4 py-2 border rounded-lg bg-gray-100 hover:bg-gray-200">
-                    Cancel
-                </button>
-                <button type="button" @click="handleSave"
-                    class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
-                    Save
-                </button>
-            </div>
+           
         </div>
+
+        <div class="flex justify-end mt-6 gap-4">
+      <button
+        type="button"
+        @click="router.push('/schools')"
+        class="px-4 py-2 border-2 border-[#0198FF] text-[#0198FF] font-[700] rounded-lg bg-[#F2F4F8] hover:bg-gray-200"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        @click="handleSave"
+        :disabled="saving"
+        class="px-4 py-2 rounded-lg bg-blue-500 text-white font-[700] hover:bg-blue-600"
+      >
+        {{ saving ? "Saving..." : "Save" }}
+      </button>
+    </div>
 
         <!-- ✅ Avatar Popup -->
         <div v-if="showAvatarPopup" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

@@ -4,12 +4,7 @@ import AddSchoolAdminModal from "~/components/AddSchoolAdminModal.vue";
 import DeleteSchoolUserModal from "~/components/DeleteSchoolUserModal.vue";
 import DeleteSchoolUserMultiModal from "~/components/DeleteSchoolUserMultiModal.vue";
 
-const { public: config } = useRuntimeConfig();
-const { staffs, isLoading, fetchSchoolUsers } = useSchoolUsers(
-  config.apiDomain
-);
-// const route = useRoute();
-// const router = useRouter();
+const { staffs, fetchSchoolUsers } = useSchoolUsers();
 
 const selectedSchoolUserId = ref("");
 const selectedSchoolUserName = ref("");

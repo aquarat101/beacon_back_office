@@ -23,9 +23,14 @@ export default defineNuxtConfig({
   css: ["~/assets/css/tailwind.css", "~/assets/css/main.css"],
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+
   modules: [
     "@nuxtjs/tailwindcss",
     "@pinia/nuxt",
     "pinia-plugin-persistedstate/nuxt",
   ],
-});
+
+  build: {
+    transpile: ["@vuepic/vue-datepicker"],
+  },
+})

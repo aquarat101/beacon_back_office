@@ -6,10 +6,7 @@ import DeleteSchoolUserMultiModal from "~/components/DeleteSchoolUserMultiModal.
 import { ROLES } from "~/constants/role";
 
 const userStorage = useAuth();
-const { public: config } = useRuntimeConfig();
-const { schoolId,staffs, isLoading, fetchSchoolUsers } = useSchoolUsers(
-  config.apiDomain
-);
+const { schoolId,staffs, fetchSchoolUsers } = useSchoolUsers();
 
 const selectedSchoolUserId = ref("");
 const selectedSchoolUserName = ref("");
